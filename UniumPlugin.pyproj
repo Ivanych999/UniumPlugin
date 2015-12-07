@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{e7d48e02-c55f-401c-b1d1-9ba72d9a88b8}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>mcqp_unium.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>{8d01649e-6ffc-46a0-9201-08dda91fa014}</InterpreterId>
+    <InterpreterVersion>2.7</InterpreterVersion>
+    <IsWindowsApplication>False</IsWindowsApplication>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+    <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="icon.png" />
+    <Content Include="metadata.txt" />
+    <Content Include="README.html" />
+    <Content Include="README.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="help\source\conf.py" />
+    <Compile Include="mcqp_unium.py" />
+    <Compile Include="mcqp_unium_dockwidget.py" />
+    <Compile Include="plugin_upload.py" />
+    <Compile Include="resources.py" />
+    <Compile Include="test\qgis_interface.py" />
+    <Compile Include="test\test_init.py" />
+    <Compile Include="test\test_mcqp_unium_dockwidget.py" />
+    <Compile Include="test\test_qgis_environment.py" />
+    <Compile Include="test\test_resources.py" />
+    <Compile Include="test\test_translations.py" />
+    <Compile Include="test\utilities.py" />
+    <Compile Include="test\__init__.py" />
+    <Compile Include="__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="help\" />
+    <Folder Include="help\source" />
+    <Folder Include="test" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="{8d01649e-6ffc-46a0-9201-08dda91fa014}\2.7" />
+  </ItemGroup>
+  <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
+</Project>

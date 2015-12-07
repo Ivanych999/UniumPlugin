@@ -1,0 +1,34 @@
+import sqlite3
+con = sqlite3.connect(r'D:\t.db')
+con.enable_load_extension(True)
+con.execute("SELECT load_extension('mod_spatialite.dll')")
+
+sql = 'CREATE TABLE test_pt (id INTEGER NOT NULL PRIMARY KEY,name TEXT)'
+
+sql = "SELECT AddGeometryColumn('test_pt','shape', 4326, 'POINT', 'XY')"
+
+http://www.gaia-gis.it/spatialite-2.4.0-4/splite-python.html
+
+uri = QgsDataSourceURI()
+uri.setDatabase(r'D:\tst.sqlite')
+uri.setDataSource('', 'test_pt', 'shape')
+l = QgsVectorLayer(uri.uri(),'layer','spatialite')
+l.isValid()
+True
+l.startEditing()
+True
+fet = QgsFeature()
+det.setGeometry(QgsGeometry.fromPoint(QgsPoint(37.5,55.5)))
+Traceback (most recent call last):
+  File "<input>", line 1, in <module>
+NameError: name 'det' is not defined
+fet.setGeometry(QgsGeometry.fromPoint(QgsPoint(37.5,55.5)))
+fet.setFields(l.fields())
+fet.setAttribute('name','point1')
+l.dataProvider().addFeatures([fet])
+(True, [<qgis._core.QgsFeature object at 0x000000000DBCF620>])
+l.commitChanges()
+True
+QgsMapLayerRegistry.instance().addMapLayer(l)
+<qgis._core.QgsVectorLayer object at 0x000000000DBC6D90>
+
