@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  UniumPlugin
@@ -21,13 +21,13 @@
  ***************************************************************************/
 """
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt, QVariant
-from PyQt4.QtGui import QAction, QIcon, QFileDialog, QTableWidgetItem
+from PyQt4.QtGui import QAction, QIcon, QFileDialog, QTableWidgetItem, qApp
 from PyQt4.QtCore import pyqtSlot,SIGNAL,SLOT
 from qgis.core import *
 from qgis.gui import *
 from lxml import etree
 # Initialize Qt resources from file resources.py
-import resources, os, sqlite3, shutil, datetime, json
+import resources, os, sqlite3, shutil, datetime, json, math
 
 # Import the code for the DockWidget
 from mcqp_unium_dockwidget import UniumPluginDockWidget
@@ -81,6 +81,7 @@ class UniumPlugin:
         self.sml_data = {}
         
         # initialize layers data
+        self.categories = {}
         self.layers = {}
         self.selected_id = u''
 
@@ -257,6 +258,7 @@ class UniumPlugin:
 
             self.getSettings()
             self.updateSettingsUI()
+            self.get_project_settings()
             self.update_layers_list()
             
             # show the dockwidget
@@ -300,6 +302,13 @@ class UniumPlugin:
                 self.iface.messageBar().pushMessage("Warning", msg, level=QgsMessageBar.WARNING, duration=7)
                 QgsMessageLog.logMessage(msg, level=QgsMessageLog.WARNING)
 
+    def get_project_settings(self):
+        # Читаем список категорий в формате {<id>:"<категория>"}
+        self.categories = json.loads(QgsProject.instance().readEntry("UniumPlugin", "categories", "{}")[0])
+
+    def set_project_settings(self):
+        QgsProject.instance().writeEntry("UniumPlugin", "categories", json.dumps(self.categories))
+
     def updateSettingsUI(self):
         self.dockwidget.filefolderEdit.setText(self.config['files_folder'])
         self.dockwidget.wrblkBox.setValue(self.config['write_block'])
@@ -336,7 +345,7 @@ class UniumPlugin:
                     path.append(root.name())
         path.reverse()
         return chr(92).join([p for p in path if len(p) > 0])
-            
+
     def get_layers(self):
         self.layers = {}
         for lyr in self.iface.legendInterface().layers():
@@ -346,7 +355,7 @@ class UniumPlugin:
                                     'subset': lyr.subsetString(),
                                     'path': path,
                                     'full_name':chr(92).join([path,lyr.name()])}
-                                              
+
     def update_layers_list(self):
         list_items = []
         self.dockwidget.layersBox.clear()
@@ -355,7 +364,7 @@ class UniumPlugin:
             list_items.append(self.layers[lid].get('full_name',''))
         list_items.sort()
         self.dockwidget.layersBox.addItems(list_items)
-        
+
     def update_TView(self):
         if self.selected_id in self.layers.keys():
             self.dockwidget.layersBox.enabled = False
@@ -392,7 +401,7 @@ class UniumPlugin:
         count = cur.execute("select count(name) from sqlite_master where type='table' and name = ?",(table_name,))
         if count.fetchall()[0][0] > 0:
             table_name += '_%s' % datetime.datetime.now().strftime('%Y%m%d_%H%M')
-        cur.execute('CREATE TABLE %s (id INTEGER NOT NULL PRIMARY KEY,name TEXT,descr TEXT,sign TEXT,cat_id TEXT)'% table_name)
+        cur.execute('CREATE TABLE %s (id INTEGER NOT NULL PRIMARY KEY,name TEXT,descr TEXT,sign TEXT,cat_id INTEGER)'% table_name)
         con.commit()
         cur.execute("SELECT AddGeometryColumn(?,'shape', 4326, 'POINT', 'XY')",(table_name,))
         con.commit()
@@ -402,6 +411,7 @@ class UniumPlugin:
     def ParseSML(self):
         """Parse categorymarks.sml to dictionary and make layers tree"""
         try:
+            self.dockwidget.sasprogressBar.value = 0
             if not os.path.exists(self.sml_data['db_file']):
                 empty_db = os.path.join(os.path.dirname(__file__),'empty.sqlite')
                 if os.path.exists(empty_db):
@@ -409,27 +419,39 @@ class UniumPlugin:
                 else:
                     UniumPlugin.create_db(self.sml_data['db_file'])
                 QgsMessageLog.logMessage(u'Новая база создана', level=QgsMessageLog.INFO)
-                
+            self.dockwidget.sasprogressBar.setValue(25)
+            qApp.processEvents()
+
             self.sml_data['table'] = UniumPlugin.create_table(self.sml_data['db_file'],self.sml_data['table'])
             QgsMessageLog.logMessage(u'Новая таблица в базе создана', level=QgsMessageLog.INFO)
-            
+            self.dockwidget.sasprogressBar.setValue(50)
+            qApp.processEvents()
+
             QgsMessageLog.logMessage(u'Начинаю загружать метки', level=QgsMessageLog.INFO)
-                        
+
             marksf = open(self.sml_data['marks_file'],'r')
             tree = etree.XML(marksf.read().decode('cp1251'))
             marksf.close()
-            
+
             nodes = tree.xpath('/DATAPACKET/ROWDATA/ROW')
-            
+
             uri = QgsDataSourceURI()
             uri.setDatabase(self.sml_data['db_file'])
             uri.setDataSource('', self.sml_data['table'], 'shape')
-            
+
             lyr = QgsVectorLayer(uri.uri(),self.sml_data['table'],'spatialite')
             pr = lyr.dataProvider()
-            
             lyr.startEditing()
-            
+
+            nodes_count = len(nodes)
+            groups = [self.config["write_block"] for i in xrange(nodes_count/self.config["write_block"])]
+            groups.append(nodes_count%self.config["write_block"])
+
+            prgrs_interval = int(math.ceil(nodes_count/25.0))
+
+            features = []
+            group_idx = 0
+            f_idx = 0
             for node in nodes:
                 feature = QgsFeature()
                 feature.setGeometry(QgsGeometry.fromPoint(QgsPoint(float(node.get('lonL')),float(node.get('LatB')))))
@@ -438,10 +460,21 @@ class UniumPlugin:
                 feature.setAttribute('name',node.get('name'))
                 feature.setAttribute('descr',node.get('descr'))
                 feature.setAttribute('sign',node.get('picname'))
-                feature.setAttribute('cat_id',node.get('categoryid'))
-                pr.addFeatures([feature])
-                
+                feature.setAttribute('cat_id',int(node.get('categoryid')))
+                features.append(feature)
+                if len(features) == groups[group_idx]:
+                    pr.addFeatures(features)
+                    features = []
+                    group_idx+=1
+                f_idx+=1
+                if f_idx%prgrs_interval == 0:
+                    new_value = self.dockwidget.sasprogressBar.value+1
+                    self.dockwidget.sasprogressBar.setValue(new_value)
+                    qApp.processEvents()
+
             lyr.commitChanges()
+            self.dockwidget.sasprogressBar.setValue(75)
+            qApp.processEvents()
             
             lyr = None
             
@@ -457,9 +490,13 @@ class UniumPlugin:
             root = QgsProject.instance().layerTreeRoot()
             root.removeAllChildren()
             QgsMapLayerRegistry.instance().removeAllMapLayers()
+
+            self.categories = {}
             
             for node in nodes:
                 chain = node.get('name').split(chr(92))
+
+                self.categories[int(node.get('id'))] = node.get('name')
                 
                 # Create sublayers for category
                 c_root = root
@@ -473,9 +510,13 @@ class UniumPlugin:
                 cat_lyr.setSubsetString('("cat_id" = \'%s\')' % node.get('id'))
                 QgsMapLayerRegistry.instance().addMapLayer(cat_lyr,False)
                 c_root.addLayer(cat_lyr)
+
+            self.set_project_settings()
+            self.iface.mapCanvas().mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(3857, QgsCoordinateReferenceSystem.EpsgCrsId))
                 
             QgsMessageLog.logMessage(u'Слои созданы', level=QgsMessageLog.INFO)
-                
+            self.dockwidget.sasprogressBar.setValue(100)
+            qApp.processEvents()
         except Exception, err:
             self.iface.messageBar().pushMessage("Error", u"Что-то случилось: %s" % err, level=QgsMessageBar.CRITICAL, duration=7)
             QgsMessageLog.logMessage(u'%s' % err, level=QgsMessageLog.CRITICAL)
