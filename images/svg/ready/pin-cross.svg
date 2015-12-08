@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- The icon can be used freely in both personal and commercial projects with no attribution required, but always appreciated. 
+You may NOT sub-license, resell, rent, redistribute or otherwise transfer the icon without express written permission from iconmonstr.com -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   x="0px"
+   y="0px"
+   width="512px"
+   height="512px"
+   viewBox="0 0 512 512"
+   enable-background="new 0 0 512 512"
+   xml:space="preserve"
+   id="svg2"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="pin-cross.svg"><metadata
+   id="metadata9"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
+   id="defs7" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="1137"
+   id="namedview5"
+   showgrid="false"
+   inkscape:zoom="1.31"
+   inkscape:cx="-5.8320605"
+   inkscape:cy="256"
+   inkscape:window-x="-8"
+   inkscape:window-y="-8"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="svg2" />
+<path
+   id="location-7-icon"
+   d="M 256,1 C 198.00947,1 151,47.87534 151,105.69903 151,164.41748 202.0543,203.14866 256,257 309.9457,203.14866 361,164.41748 361,105.69903 361,47.87534 313.99053,1 256,1 z m 0,178.304 c -42.54525,0 -77.03573,-34.39161 -77.03573,-76.81491 0,-42.42392 34.49048,-76.81492 77.03573,-76.81492 42.54588,0 77.03635,34.391 77.03635,76.81492 0,42.4233 -34.49047,76.81491 -77.03635,76.81491 z M 284.03282,145.5965 256,117.64652 l -28.03157,27.95371 -15.05707,-15.0226 28.02659,-27.9506 -28.0297,-27.9475 15.06579,-15.0139 L 256,87.60629 284.02098,59.6619 l 15.06952,15.01639 -28.02596,27.9475 28.02846,27.94438 -15.06018,15.02633 z"
+   inkscape:connector-curvature="0"
+   style="stroke:#000000;fill:#d40000;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none" />
+</svg>

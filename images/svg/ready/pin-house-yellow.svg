@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- The icon can be used freely in both personal and commercial projects with no attribution required, but always appreciated. 
+You may NOT sub-license, resell, rent, redistribute or otherwise transfer the icon without express written permission from iconmonstr.com -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   x="0px"
+   y="0px"
+   width="512px"
+   height="512px"
+   viewBox="0 0 512 512"
+   enable-background="new 0 0 512 512"
+   xml:space="preserve"
+   id="svg2994"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="pin-house-yellow.svg"><metadata
+   id="metadata3001"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
+   id="defs2999" /><sodipodi:namedview
+   pagecolor="#cdffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="1137"
+   id="namedview2997"
+   showgrid="true"
+   inkscape:zoom="0.92773435"
+   inkscape:cx="294.21818"
+   inkscape:cy="374.60441"
+   inkscape:window-x="1912"
+   inkscape:window-y="-8"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="svg2994"
+   showguides="false"
+   inkscape:guide-bbox="true"
+   inkscape:snap-global="false"><inkscape:grid
+     type="xygrid"
+     id="grid3794"
+     empspacing="5"
+     visible="true"
+     enabled="true"
+     snapvisiblegridlinesonly="true" /></sodipodi:namedview>
+
+<g
+   id="g2998"><path
+     transform="matrix(0.93163716,0,0,0.95711274,18.971478,4.5375019)"
+     d="m 355,104.5 a 100,97.5 0 1 1 -200,0 100,97.5 0 1 1 200,0 z"
+     sodipodi:ry="97.5"
+     sodipodi:rx="100"
+     sodipodi:cy="104.5"
+     sodipodi:cx="255"
+     id="path2983"
+     style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
+     sodipodi:type="arc" /><g
+     id="g3756"
+     style="fill:#ffd200;fill-opacity:1"><path
+       transform="matrix(0.97419687,0,0,1.0007314,6.5133187,-3.9486721)"
+       d="m 356.70337,107.65996 a 100.60864,97.940994 0 1 1 -201.21729,0 100.60864,97.940994 0 1 1 201.21729,0 z"
+       sodipodi:ry="97.940994"
+       sodipodi:rx="100.60864"
+       sodipodi:cy="107.65996"
+       sodipodi:cx="256.09473"
+       id="path3753"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
+       sodipodi:type="arc" /><path
+       inkscape:connector-curvature="0"
+       id="location-5-icon"
+       d="M 256,1e-6 C 198.00947,1e-6 151,46.875341 151,104.69903 151,163.41748 202.0543,202.14866 256,256 309.9457,202.14866 361,163.41748 361,104.69903 361,46.875341 313.99053,1e-6 256,1e-6 z M 256,178.304 c -42.54525,0 -77.03573,-34.39161 -77.03573,-76.81491 0,-42.423924 34.49048,-76.815536 77.03573,-76.815536 42.54588,0 77.03635,34.39099 77.03635,76.815536 0,42.4233 -34.49047,76.81491 -77.03635,76.81491 z"
+       style="fill:#ffd200;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" /></g><path
+     inkscape:connector-curvature="0"
+     id="home-4-icon"
+     d="m 296.69364,98.50222 v 40.89274 h -29.30379 v -22.22354 h -22.07054 v 22.22354 H 216.01553 V 98.50222 h -10.4879 l 50.82708,-50.642758 50.82707,50.643007 h -10.48814 z m -6.27197,-46.091277 h -11.82272 v 9.42551 l 11.82272,11.814915 V 52.410943 z"
+     style="fill:#ffd200;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" /></g></svg>

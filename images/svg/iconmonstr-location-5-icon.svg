@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- The icon can be used freely in both personal and commercial projects with no attribution required, but always appreciated. 
+You may NOT sub-license, resell, rent, redistribute or otherwise transfer the icon without express written permission from iconmonstr.com -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   x="0px"
+   y="0px"
+   width="512px"
+   height="512px"
+   viewBox="0 0 512 512"
+   enable-background="new 0 0 512 512"
+   xml:space="preserve"
+   id="svg2"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="iconmonstr-location-5-icon.svg"><metadata
+   id="metadata9"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata><defs
+   id="defs7" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="1137"
+   id="namedview5"
+   showgrid="false"
+   inkscape:zoom="1.84375"
+   inkscape:cx="177.6686"
+   inkscape:cy="368.18721"
+   inkscape:window-x="1912"
+   inkscape:window-y="-8"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="svg2" />
+
+<g
+   id="text2986"
+   style="font-size:145.81813048999999000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffd200;fill-opacity:1;stroke:#000000;font-family:Arial;-inkscape-font-specification:Arial"
+   transform="scale(0.99609165,1.0039237)"><g
+     id="g3780"><path
+       transform="scale(1.0039237,0.99609164)"
+       style="stroke:#000000;fill:#ffd200;fill-opacity:1"
+       inkscape:connector-curvature="0"
+       d="M 256,1 C 198.00947,1 151,47.87534 151,105.69903 151,164.41748 202.0543,203.14866 256,257 309.9457,203.14866 361,164.41748 361,105.69903 361,47.87534 313.99053,1 256,1 z m 0,178.304 c -42.54525,0 -77.03573,-34.39161 -77.03573,-76.81491 0,-42.42392 34.49048,-76.81554 77.03573,-76.81554 42.54588,0 77.03635,34.39099 77.03635,76.81554 0,42.4233 -34.49047,76.81491 -77.03635,76.81491 z"
+       id="location-5-icon" /><path
+       d="m 264.8365,114.58149 c -0.0475,0.4747 -0.1899,0.9019 -0.4272,1.28161 -0.23737,0.37976 -0.65271,0.70016 -1.24601,0.9612 -0.59337,0.26109 -1.4003,0.46283 -2.42081,0.6052 -1.02056,0.14243 -2.26657,0.21363 -3.73801,0.2136 -1.51897,3e-5 -2.77684,-0.0712 -3.77362,-0.2136 -0.99682,-0.14237 -1.79189,-0.34411 -2.3852,-0.6052 -0.59336,-0.26104 -1.00869,-0.58144 -1.24601,-0.9612 -0.23735,-0.37971 -0.37975,-0.80691 -0.4272,-1.28161 l -1.85121,-64.649834 c -1e-5,-0.616973 0.14239,-1.162842 0.4272,-1.637606 0.28479,-0.474571 0.79506,-0.866172 1.53081,-1.174804 0.73572,-0.308437 1.73252,-0.533904 2.99041,-0.676403 1.25785,-0.142302 2.83612,-0.213502 4.73482,-0.2136 1.89864,9.8e-5 3.46505,0.08317 4.69922,0.2492 1.2341,0.166232 2.21904,0.403566 2.95481,0.712003 0.7357,0.308632 1.25783,0.688366 1.5664,1.139204 0.3085,0.451031 0.46277,0.985033 0.4628,1.602006 z m 2.2072,20.86168 c -3e-5,1.94614 -0.1543,3.58375 -0.4628,4.91281 -0.30857,1.32908 -0.85443,2.39708 -1.6376,3.20402 -0.78324,0.80693 -1.81564,1.3884 -3.09721,1.7444 -1.28164,0.356 -2.89551,0.534 -4.84162,0.534 -1.94617,0 -3.5719,-0.178 -4.87722,-0.534 -1.30536,-0.356 -2.33776,-0.93747 -3.09721,-1.7444 -0.75949,-0.80694 -1.29349,-1.87494 -1.60201,-3.20402 -0.30855,-1.32906 -0.46281,-2.96667 -0.4628,-4.91281 -1e-5,-1.9936 0.15425,-3.6668 0.4628,-5.01962 0.30852,-1.35279 0.84252,-2.44453 1.60201,-3.27521 0.75945,-0.83065 1.79185,-1.42399 3.09721,-1.78001 1.30532,-0.35598 2.93105,-0.53398 4.87722,-0.534 1.94611,2e-5 3.55998,0.17802 4.84162,0.534 1.28157,0.35602 2.31397,0.94936 3.09721,1.78001 0.78317,0.83068 1.32903,1.92242 1.6376,3.27521 0.3085,1.35282 0.46277,3.02602 0.4628,5.01962 z"
+       style="font-weight:bold;font-family:Calibri;-inkscape-font-specification:Calibri Bold;stroke:#000000;fill:#ffd200;fill-opacity:1"
+       id="path3006"
+       inkscape:connector-curvature="0" /></g></g></svg>

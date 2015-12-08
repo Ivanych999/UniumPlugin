@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- The icon can be used freely in both personal and commercial projects with no attribution required, but always appreciated. 
+You may NOT sub-license, resell, rent, redistribute or otherwise transfer the icon without express written permission from iconmonstr.com -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   x="0px"
+   y="0px"
+   width="512px"
+   height="512px"
+   viewBox="0 0 512 512"
+   enable-background="new 0 0 512 512"
+   xml:space="preserve"
+   id="svg2"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="pin-checktick2.svg"><metadata
+   id="metadata9"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
+   id="defs7" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="1137"
+   id="namedview5"
+   showgrid="true"
+   inkscape:zoom="2.62"
+   inkscape:cx="167.19016"
+   inkscape:cy="353.6041"
+   inkscape:window-x="1912"
+   inkscape:window-y="-8"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="svg2"><inkscape:grid
+     type="xygrid"
+     id="grid2986" /></sodipodi:namedview>
+<g
+   id="g3753"
+   transform="matrix(0.99060233,0,0,0.99224806,2.410473,8.2372648e-4)"><path
+     transform="matrix(0.94047544,0,0,0.96459019,16.178763,3.6840045)"
+     d="M 355,104.5 C 355,158.34776 310.22847,202 255,202 199.77153,202 155,158.34776 155,104.5 155,50.652237 199.77153,7 255,7 c 55.22847,0 100,43.652237 100,97.5 z"
+     sodipodi:ry="97.5"
+     sodipodi:rx="100"
+     sodipodi:cy="104.5"
+     sodipodi:cx="255"
+     id="path2983"
+     style="fill:#00c400;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+     sodipodi:type="arc" /><path
+     style="fill:#ffffff;fill-opacity:1;stroke:#00c400;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+     inkscape:connector-curvature="0"
+     d="M 256,1 C 198.00947,1 151,47.87534 151,105.69903 151,164.41748 202.0543,203.14866 256,257 309.9457,203.14866 361,164.41748 361,105.69903 361,47.87534 313.99053,1 256,1 z m 0,178.304 c -42.54525,0 -77.03572,-34.39161 -77.03572,-76.81491 0,-42.42392 34.49047,-76.81492 77.03572,-76.81492 42.54587,0 77.03635,34.391 77.03635,76.81492 0,42.4233 -34.49048,76.81491 -77.03635,76.81491 z m 52.20587,-98.5979 -67.25857,67.07075 -38.39884,-38.29934 16.34884,-16.3057 22.04937,21.99176 50.90289,-50.75759 16.35631,16.30012 z"
+     id="location-6-icon" /></g>
+</svg>

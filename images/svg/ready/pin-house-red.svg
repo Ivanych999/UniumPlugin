@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- The icon can be used freely in both personal and commercial projects with no attribution required, but always appreciated. 
+You may NOT sub-license, resell, rent, redistribute or otherwise transfer the icon without express written permission from iconmonstr.com -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   x="0px"
+   y="0px"
+   width="512px"
+   height="512px"
+   viewBox="0 0 512 512"
+   enable-background="new 0 0 512 512"
+   xml:space="preserve"
+   id="svg2994"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="pin-house-red.svg"><metadata
+   id="metadata3001"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
+   id="defs2999" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="1137"
+   id="namedview2997"
+   showgrid="true"
+   inkscape:zoom="1.3120145"
+   inkscape:cx="163.16253"
+   inkscape:cy="291.23817"
+   inkscape:window-x="1912"
+   inkscape:window-y="-8"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="svg2994"
+   showguides="false"
+   inkscape:guide-bbox="true"
+   inkscape:snap-global="false"><inkscape:grid
+     type="xygrid"
+     id="grid3794" /></sodipodi:namedview>
+
+<g
+   id="g2994"><path
+     transform="matrix(0.93163716,0,0,0.95711274,19.289442,4.2118355)"
+     d="m 355,104.5 a 100,97.5 0 1 1 -200,0 100,97.5 0 1 1 200,0 z"
+     sodipodi:ry="97.5"
+     sodipodi:rx="100"
+     sodipodi:cy="104.5"
+     sodipodi:cx="255"
+     id="path2983"
+     style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
+     sodipodi:type="arc" /><path
+     style="fill:#d40000;fill-opacity:1;stroke:#000000;stroke-width:1.98284972;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+     d="m 256.00467,0.99307021 c -57.44555,0 -104.01325,46.51196579 -104.01325,103.88740979 0,58.26327 50.57451,96.69421 104.01325,150.1281 53.43874,-53.43389 104.01324,-91.86483 104.01324,-150.1281 0,-57.375444 -46.56769,-103.88740979 -104.01324,-103.88740979 z m 0,176.92179979 c -42.14542,0 -76.31177,-34.12501 -76.31177,-76.21945 0,-42.095054 34.16635,-76.220064 76.31177,-76.220064 42.14605,0 76.31239,34.124393 76.31239,76.220064 0,42.09444 -34.16634,76.21945 -76.31239,76.21945 z"
+     id="location-5-icon"
+     inkscape:connector-curvature="0" /><path
+     inkscape:connector-curvature="0"
+     id="home-4-icon"
+     d="m 296.31588,98.731707 v 40.575743 h -29.0284 v -22.05127 h -21.86313 v 22.05127 H 216.39596 V 98.731707 h -10.38934 l 50.34943,-50.250179 50.34941,50.250426 h -10.38958 z m -6.21302,-45.733981 h -11.71162 v 9.352444 l 11.71162,11.723327 V 52.997726 z"
+     style="fill:#d40000;fill-opacity:1;stroke:#000000;stroke-width:1.98284972;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" /></g></svg>
