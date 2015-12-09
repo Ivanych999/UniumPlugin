@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="512"
+   height="512"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="circle_house_yellow.svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="172.61689"
+     inkscape:cy="330.97126"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1137"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-540.36218)">
+    <g
+       id="g3819">
+      <path
+         transform="matrix(0.9627265,0,0,0.97061772,5.0948403,546.48484)"
+         d="m 509.11688,257.44156 a 248.49753,246.47722 0 1 1 -496.995054,0 248.49753,246.47722 0 1 1 496.995054,0 z"
+         sodipodi:ry="246.47722"
+         sodipodi:rx="248.49753"
+         sodipodi:cy="257.44156"
+         sodipodi:cx="260.61935"
+         id="path2985"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#323296;stroke-width:26.89662360999999900;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         sodipodi:type="arc" />
+      <path
+         style="fill:#323296;fill-opacity:1"
+         inkscape:connector-curvature="0"
+         id="home-4-icon"
+         d="M 394.88884,790.87221 V 929.36218 H 293.99452 v -75.26367 h -75.98991 v 75.26367 H 117.11033 V 790.87221 H 81 L 256.00002,619.36218 431,790.87306 H 394.88884 z M 373.29415,634.77652 h -40.70618 v 31.92103 l 40.70618,40.01317 v -71.9342 z" />
+    </g>
+  </g>
+</svg>

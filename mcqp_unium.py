@@ -381,6 +381,28 @@ class UniumPlugin:
                             self.dockwidget.tableView.setItem(row,col,item)
                     break
             self.dockwidget.layersBox.enabled = True
+
+    # create lyr for category
+    @staticmethod
+    def create_catlyr(uri,chain,cat_id):
+        cat_lyr = QgsVectorLayer(uri.uri(), chain, 'spatialite')
+        cat_lyr.setSubsetString('("cat_id" = %s)' % cat_id)
+        cat_lyr.setCustomProperty("cat_filter", cat_id)
+        cat_lyr.setCustomProperty("name_filter", "")
+        cat_lyr.setCustomProperty("descr_filter", "")
+        return cat_lyr
+
+    @staticmethod
+    def set_subsets(lyr,cat_id,name = '',descr = ''):
+        subset_str = u'("cat_id" = %s)' % cat_id
+        cat_lyr.setCustomProperty("cat_filter", cat_id)
+        cat_lyr.setCustomProperty("name_filter", name)
+        if name:
+            subset_str += u' & ("name" like \'%{1}%\')'.format(name)
+        
+        if descr:
+            subset_str += u' & ("descr" like \'%{1}%\')'.format(descr)
+        lyr.setSubsetString(subset_str)
     
     @staticmethod
     def create_db(db_file):
@@ -392,7 +414,7 @@ class UniumPlugin:
         cur.execute(sql)
         con.close()
     
-    @staticmethod    
+    @staticmethod
     def create_table(db_file,table_name):
         con = sqlite3.connect(db_file)
         cur = con.cursor()
@@ -452,6 +474,8 @@ class UniumPlugin:
             features = []
             group_idx = 0
             f_idx = 0
+            position = 50
+
             for node in nodes:
                 feature = QgsFeature()
                 feature.setGeometry(QgsGeometry.fromPoint(QgsPoint(float(node.get('lonL')),float(node.get('LatB')))))
@@ -468,8 +492,8 @@ class UniumPlugin:
                     group_idx+=1
                 f_idx+=1
                 if f_idx%prgrs_interval == 0:
-                    new_value = self.dockwidget.sasprogressBar.value+1
-                    self.dockwidget.sasprogressBar.setValue(new_value)
+                    position+=1
+                    self.dockwidget.sasprogressBar.setValue(position)
                     qApp.processEvents()
 
             lyr.commitChanges()

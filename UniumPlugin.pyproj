@@ -11,7 +11,7 @@
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>fa35ef13-cc77-4a3a-ace3-7e71080bdc84</InterpreterId>
+    <InterpreterId>{8d01649e-6ffc-46a0-9201-08dda91fa014}</InterpreterId>
     <InterpreterVersion>2.7</InterpreterVersion>
     <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
