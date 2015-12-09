@@ -69,7 +69,7 @@ class UniumPlugin:
         self.actions = []
         self.menu = self.tr(u'&UniumPlugin')
         # TODO: We are going to let the user set this up in a future iteration
-        self.toolbar = self.iface.addToolBar(u'UniumPlugin')
+        self.toolbar = self.iface.pluginToolBar() #self.iface.addToolBar(u'UniumPlugin')
         self.toolbar.setObjectName(u'UniumPlugin')
 
         #print "** INITIALIZING UniumPlugin"
@@ -249,6 +249,8 @@ class UniumPlugin:
                 self.dockwidget.wrblkBox.valueChanged.connect(self.wrblkBox_value_changed)
                 self.dockwidget.savesetButton.clicked.connect(self.savesetButton_clicked)
                 self.dockwidget.loadsetButton.clicked.connect(self.loadsetButton_clicked)
+                self.dockwidget.applyFilterButton.clicked.connect(self.applyFilterButton_clicked)
+                self.dockwidget.resetFilterButton.clicked.connect(self.resetFilterButton_clicked)
                 #self.dockwidget.layersBox.connect(self.dockwidget.layersBox,SIGNAL("currentIndexChanged(int)"),self.dockwidget,SLOT("self.selected_layer_changed(int)"))
                 
             self.dockwidget.layersBox.currentIndex = 1
@@ -260,7 +262,10 @@ class UniumPlugin:
             self.updateSettingsUI()
             self.get_project_settings()
             self.update_layers_list()
-            
+            for lyr in self.iface.legendInterface().layers():
+                if isinstance(lyr, QgsVectorLayer):
+                    UniumPlugin.load_subsets(lyr)
+
             # show the dockwidget
             # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.BottomDockWidgetArea, self.dockwidget)
@@ -385,24 +390,40 @@ class UniumPlugin:
     # create lyr for category
     @staticmethod
     def create_catlyr(uri,chain,cat_id):
-        cat_lyr = QgsVectorLayer(uri.uri(), chain, 'spatialite')
-        cat_lyr.setSubsetString('("cat_id" = %s)' % cat_id)
+        cat_lyr = QgsVectorLayer(uri, chain, 'spatialite')
         cat_lyr.setCustomProperty("cat_filter", cat_id)
-        cat_lyr.setCustomProperty("name_filter", "")
-        cat_lyr.setCustomProperty("descr_filter", "")
+        UniumPlugin.reset_subsets(cat_lyr)
         return cat_lyr
 
     @staticmethod
-    def set_subsets(lyr,cat_id,name = '',descr = ''):
-        subset_str = u'("cat_id" = %s)' % cat_id
-        cat_lyr.setCustomProperty("cat_filter", cat_id)
-        cat_lyr.setCustomProperty("name_filter", name)
+    def set_subsets(lyr,name = '',descr = ''):
+        subset_str = ''
+        cat_filter = lyr.customProperty("cat_filter", "")
+        if cat_filter:
+            subset_str = u'("cat_id" = %s)' % cat_filter
         if name:
-            subset_str += u' & ("name" like \'%{1}%\')'.format(name)
-        
+            subset_str += u' & ("name" like \'%{0}%\')'.format(name)
+            lyr.setCustomProperty("name_filter", name)
         if descr:
-            subset_str += u' & ("descr" like \'%{1}%\')'.format(descr)
+            subset_str += u' & ("descr" like \'%{0}%\')'.format(descr)
+            lyr.setCustomProperty("descr_filter", descr)
         lyr.setSubsetString(subset_str)
+
+    @staticmethod
+    def reset_subsets(lyr):
+        subset_str = ''
+        cat_filter = lyr.customProperty("cat_filter", "")
+        if cat_filter:
+            subset_str = u'("cat_id" = %s)' % cat_filter
+            lyr.setCustomProperty("name_filter", '')
+            lyr.setCustomProperty("descr_filter", '')
+        lyr.setSubsetString(subset_str)
+
+    @staticmethod
+    def load_subsets(lyr):
+        name_filter = lyr.setCustomProperty("name_filter", '')
+        descr_filter = lyr.setCustomProperty("descr_filter", '')
+        UniumPlugin.set_subsets(lyr,name_filter,descr_filter)
     
     @staticmethod
     def create_db(db_file):
@@ -431,7 +452,7 @@ class UniumPlugin:
         return table_name
     
     def ParseSML(self):
-        """Parse categorymarks.sml to dictionary and make layers tree"""
+        """Parse SAS Planet data to splite db and make layers tree"""
         try:
             self.dockwidget.sasprogressBar.value = 0
             if not os.path.exists(self.sml_data['db_file']):
@@ -530,8 +551,9 @@ class UniumPlugin:
                         c_node = c_root.addGroup(chain[i])
                     c_root = c_node
                 
-                cat_lyr = QgsVectorLayer(uri.uri(), chain[len(chain)-1], 'spatialite')
-                cat_lyr.setSubsetString('("cat_id" = \'%s\')' % node.get('id'))
+                cat_lyr = UniumPlugin.create_catlyr(uri.uri(),chain[len(chain)-1],node.get('id'))
+                #cat_lyr = QgsVectorLayer(uri.uri(), chain[len(chain)-1], 'spatialite')
+                #cat_lyr.setSubsetString('("cat_id" = \'%s\')' % node.get('id'))
                 QgsMapLayerRegistry.instance().addMapLayer(cat_lyr,False)
                 c_root.addLayer(cat_lyr)
 
@@ -587,3 +609,23 @@ class UniumPlugin:
 
     def savesetButton_clicked(self):
         self.setSettings()
+
+    def applyFilterButton_clicked(self):
+        name_filter = self.dockwidget.nameEdit.text()
+        descr_filter = self.dockwidget.descrEdit.toPlainText()
+        for lyr in self.iface.legendInterface().layers():
+            if isinstance(lyr, QgsVectorLayer) and lyr.id() == self.selected_id:
+                UniumPlugin.set_subsets(lyr,name_filter,descr_filter)
+                extent = lyr.extent()
+                self.iface.mapCanvas().setExtent(extent)
+                self.update_TView()
+
+    def resetFilterButton_clicked(self):
+        self.dockwidget.nameEdit.setText('')
+        self.dockwidget.descrEdit.setPlainText('')
+        for lyr in self.iface.legendInterface().layers():
+            if isinstance(lyr, QgsVectorLayer) and lyr.id() == self.selected_id:
+                UniumPlugin.reset_subsets(lyr)
+                extent = lyr.extent()
+                self.iface.mapCanvas().setExtent(extent)
+                self.update_TView()
