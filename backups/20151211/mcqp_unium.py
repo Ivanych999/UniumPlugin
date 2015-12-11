@@ -26,7 +26,6 @@ from PyQt4.QtCore import pyqtSlot,SIGNAL,SLOT
 from qgis.core import *
 from qgis.gui import *
 from lxml import etree
-from openpyxl import Workbook
 # Initialize Qt resources from file resources.py
 import resources, os, sqlite3, shutil, datetime, json, math
 
@@ -200,8 +199,6 @@ class UniumPlugin:
 
         #print "** CLOSING UniumPlugin"
 
-        self.set_project_settings()
-
         # disconnects
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
 
@@ -254,8 +251,6 @@ class UniumPlugin:
                 self.dockwidget.loadsetButton.clicked.connect(self.loadsetButton_clicked)
                 self.dockwidget.applyFilterButton.clicked.connect(self.applyFilterButton_clicked)
                 self.dockwidget.resetFilterButton.clicked.connect(self.resetFilterButton_clicked)
-                self.dockwidget.brwsxlsoutButton.clicked.connect(self.select_out_excel_file)
-                self.dockwidget.xlsoutButton.clicked.connect(self.export_to_xls)
                 #self.dockwidget.layersBox.connect(self.dockwidget.layersBox,SIGNAL("currentIndexChanged(int)"),self.dockwidget,SLOT("self.selected_layer_changed(int)"))
                 
             self.dockwidget.layersBox.currentIndex = 1
@@ -269,7 +264,7 @@ class UniumPlugin:
             self.update_layers_list()
             for lyr in self.iface.legendInterface().layers():
                 if isinstance(lyr, QgsVectorLayer):
-                    self.load_subsets(lyr)
+                    UniumPlugin.load_subsets(lyr)
 
             # show the dockwidget
             # TODO: fix to allow choice of dock location
@@ -326,35 +321,8 @@ class UniumPlugin:
     #--------------------------------------------------------------------------
 
     def export_to_xls(self):
-        try:
-            xls_filename = self.dockwidget.xlsoutEdit.text()
-            if os.path.exists(xls_filename):
-                try:
-                    os.remove(xls_filename)
-                except Exception, err:
-                    msg = u"Ошибка при удалении файла %s : %s" % (unicode(xls_filename),err)
-                    self.iface.messageBar().pushMessage("Error", msg, level=QgsMessageBar.CRITICAL, duration=7)
-                    QgsMessageLog.logMessage(msg, level=QgsMessageLog.CRITICAL)
-                    return
-            if self.selected_id in self.layers.keys():
-                wb = Workbook()
-                ws = wb.active
-                self.dockwidget.layersBox.enabled = False
-                ws.append(["id","name","descr","sign","category_id","category_name"])
-                for lyr in self.iface.legendInterface().layers():
-                    if isinstance(lyr, QgsVectorLayer) and (lyr.id() == self.selected_id or self.selected_id == '0'):
-                        for feat in lyr.getFeatures():
-                            ws.append([feat["id"],feat["name"],feat["descr"],feat["sign"],feat["cat_id"],self.categories.get(unicode(feat["cat_id"]),u'')])
-                        if self.selected_id <> '0':
-                            break
-                wb.save(xls_filename)
-                msg = u"Выгрузка завершена"
-            self.iface.messageBar().pushMessage(u"Выгрузка в Excel", msg, level=QgsMessageBar.INFO, duration=7)
-            QgsMessageLog.logMessage(msg, level=QgsMessageLog.INFO)
-        except Exception, err:
-            msg = u"Ошибка при выгрузке в Excel: %s" % err
-            self.iface.messageBar().pushMessage("Error", msg, level=QgsMessageBar.CRITICAL, duration=7)
-            QgsMessageLog.logMessage(msg, level=QgsMessageLog.CRITICAL)
+        pass
+
 
 
     #--------------------------------------------------------------------------
@@ -412,23 +380,18 @@ class UniumPlugin:
     def update_TView(self):
         if self.selected_id in self.layers.keys():
             self.dockwidget.layersBox.enabled = False
-            attrs_names = []
-            attrs_values = []
             for lyr in self.iface.legendInterface().layers():
-                if isinstance(lyr, QgsVectorLayer) and (lyr.id() == self.selected_id or self.selected_id == '0'):
-                    QgsMessageLog.logMessage(u'Ler name: %s' % lyr.name(), level=QgsMessageLog.INFO)
+                if isinstance(lyr, QgsVectorLayer) and lyr.id() == self.selected_id:
                     attrs_names = [a.name() for a in lyr.fields()]
-                    attrs_values += [[feat[i] for i in xrange(len(attrs_names))] for feat in lyr.getFeatures()]
-                    if self.selected_id <> '0':
-                        break
-            self.dockwidget.tableView.setRowCount(len(attrs_values))
-            self.dockwidget.tableView.setColumnCount(len(attrs_names))
-            self.dockwidget.tableView.setHorizontalHeaderLabels(attrs_names)
-            QgsMessageLog.logMessage(u'Length data: %s' % len(attrs_values), level=QgsMessageLog.INFO)
-            for row in xrange(len(attrs_values)):
-                for col in xrange(len(attrs_names)):
-                    item = QTableWidgetItem(u'%s' % attrs_values[row][col])
-                    self.dockwidget.tableView.setItem(row,col,item)
+                    attrs_values = [[feat[i] for i in xrange(len(attrs_names))] for feat in lyr.getFeatures()]
+                    self.dockwidget.tableView.setRowCount(len(attrs_values))
+                    self.dockwidget.tableView.setColumnCount(len(attrs_names))
+                    self.dockwidget.tableView.setHorizontalHeaderLabels(attrs_names)
+                    for row in xrange(len(attrs_values)):
+                        for col in xrange(len(attrs_names)):
+                            item = QTableWidgetItem(u'%s' % attrs_values[row][col])
+                            self.dockwidget.tableView.setItem(row,col,item)
+                    break
             self.dockwidget.layersBox.enabled = True
 
     def show_lyr_attrs(self,lyr):
@@ -443,43 +406,42 @@ class UniumPlugin:
                 self.dockwidget.tableView.setItem(row,col,item)
 
     # create lyr for category
-    def create_catlyr(self,uri,chain,cat_id):
+    @staticmethod
+    def create_catlyr(uri,chain,cat_id):
         cat_lyr = QgsVectorLayer(uri, chain, 'spatialite')
         cat_lyr.setCustomProperty("cat_filter", cat_id)
-        self.reset_subsets(cat_lyr)
+        UniumPlugin.reset_subsets(cat_lyr)
         return cat_lyr
 
-    def set_subsets(self,lyr,name = '',descr = ''):
+    @staticmethod
+    def set_subsets(lyr,name = '',descr = ''):
         subset_str = ''
-        cat_filter = lyr.customProperty("cat_filter", -1)
-        if cat_filter <> -1:
+        cat_filter = lyr.customProperty("cat_filter", "")
+        if cat_filter <> '':
             subset_str = u'("cat_id" = %s)' % cat_filter
         if name <> '':
             subset_str += u' & ("name" like \'%{0}%\')'.format(name)
             lyr.setCustomProperty("name_filter", name)
-            self.layers[lyr.id()]["name_filter"] = name
         if descr <> '':
             subset_str += u' & ("descr" like \'%{0}%\')'.format(descr)
             lyr.setCustomProperty("descr_filter", descr)
-            self.layers[lyr.id()]["descr_filter"] = descr
         lyr.setSubsetString(subset_str)
 
-    def reset_subsets(self,lyr):
+    @staticmethod
+    def reset_subsets(lyr):
         subset_str = ''
-        cat_filter = lyr.customProperty("cat_filter", -1)
-        if cat_filter <> -1:
+        cat_filter = lyr.customProperty("cat_filter", "")
+        if cat_filter <> '':
             subset_str = u'("cat_id" = %s)' % cat_filter
             lyr.setCustomProperty("name_filter", '')
             lyr.setCustomProperty("descr_filter", '')
-            if self.layers.has_key(lyr.id()):
-                self.layers[lyr.id()]["name_filter"] = ''
-                self.layers[lyr.id()]["descr_filter"] = ''
         lyr.setSubsetString(subset_str)
 
-    def load_subsets(self,lyr):
+    @staticmethod
+    def load_subsets(lyr):
         name_filter = lyr.customProperty("name_filter", '')
         descr_filter = lyr.customProperty("descr_filter", '')
-        self.set_subsets(lyr,name_filter,descr_filter)
+        UniumPlugin.set_subsets(lyr,name_filter,descr_filter)
     
     @staticmethod
     def create_db(db_file):
@@ -593,11 +555,12 @@ class UniumPlugin:
             QgsMapLayerRegistry.instance().removeAllMapLayers()
 
             self.categories = {}
-
+            
             for node in nodes:
                 chain = node.get('name').split(chr(92))
-                self.categories[node.get('id')] = node.get('name')
 
+                self.categories[int(node.get('id'))] = node.get('name')
+                
                 # Create sublayers for category
                 c_root = root
                 for i in xrange(len(chain)-1):
@@ -606,16 +569,12 @@ class UniumPlugin:
                         c_node = c_root.addGroup(chain[i])
                     c_root = c_node
                 
-                cat_lyr = self.create_catlyr(uri.uri(),chain[len(chain)-1],int(node.get('id')))
+                cat_lyr = UniumPlugin.create_catlyr(uri.uri(),chain[len(chain)-1],node.get('id'))
                 #cat_lyr = QgsVectorLayer(uri.uri(), chain[len(chain)-1], 'spatialite')
                 #cat_lyr.setSubsetString('("cat_id" = \'%s\')' % node.get('id'))
-                self.layers[cat_lyr.id()] = {'name': cat_lyr.name(),
-                                    'subset': cat_lyr.subsetString(),
-                                    'path': chr(92).join(chain[:len(chain)-1]),
-                                    'full_name':chr(92).join(chain)}
                 QgsMapLayerRegistry.instance().addMapLayer(cat_lyr,False)
                 c_root.addLayer(cat_lyr)
-            #self.get_layers()
+
             self.set_project_settings()
             self.iface.mapCanvas().mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(3857, QgsCoordinateReferenceSystem.EpsgCrsId))
                 
@@ -659,18 +618,14 @@ class UniumPlugin:
         for lid in self.layers.keys():
             if self.layers[lid].get('full_name','') == self.dockwidget.layersBox.currentText():
                 self.selected_id = lid
-                self.dockwidget.nameEdit.setText(self.layers[lid].get('name_filter',''))
-                self.dockwidget.descrEdit.setPlainText(self.layers[lid].get('descr_filter',''))
                 QgsMessageLog.logMessage(u'Текущий слой: %s' % lid, level=QgsMessageLog.INFO)
                 self.update_TView()
 
     def loadsetButton_clicked(self):
         self.getSettings()
-        self.get_project_settings()
         self.updateSettingsUI()
 
     def savesetButton_clicked(self):
-        self.set_project_settings()
         self.setSettings()
 
     def applyFilterButton_clicked(self):
@@ -678,7 +633,7 @@ class UniumPlugin:
         descr_filter = self.dockwidget.descrEdit.toPlainText()
         for lyr in self.iface.legendInterface().layers():
             if isinstance(lyr, QgsVectorLayer) and lyr.id() == self.selected_id:
-                self.set_subsets(lyr,name_filter,descr_filter)
+                UniumPlugin.set_subsets(lyr,name_filter,descr_filter)
                 extent = lyr.extent()
                 self.iface.mapCanvas().setExtent(extent)
                 self.update_TView()
@@ -688,11 +643,7 @@ class UniumPlugin:
         self.dockwidget.descrEdit.setPlainText('')
         for lyr in self.iface.legendInterface().layers():
             if isinstance(lyr, QgsVectorLayer) and lyr.id() == self.selected_id:
-                self.reset_subsets(lyr)
+                UniumPlugin.reset_subsets(lyr)
                 extent = lyr.extent()
                 self.iface.mapCanvas().setExtent(extent)
                 self.update_TView()
-
-    def select_out_excel_file(self):
-        xls_file = QFileDialog.getSaveFileName(self.dockwidget, "Select Excel file file ", '',"Excel files (*.xlsx)")
-        self.dockwidget.xlsoutEdit.setText(xls_file)
