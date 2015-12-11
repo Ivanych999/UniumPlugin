@@ -320,6 +320,13 @@ class UniumPlugin:
 
     #--------------------------------------------------------------------------
 
+    def export_to_xls(self):
+        pass
+
+
+
+    #--------------------------------------------------------------------------
+
     @staticmethod
     def rec_get_layer_path(root,layer_id,path):
         check = False
@@ -352,7 +359,7 @@ class UniumPlugin:
         return chr(92).join([p for p in path if len(p) > 0])
 
     def get_layers(self):
-        self.layers = {}
+        self.layers = {"0": {"name": u"Все", "path":"", "full_name": u"Все"}}
         for lyr in self.iface.legendInterface().layers():
             if isinstance(lyr, QgsVectorLayer):
                 path = UniumPlugin.get_layer_path(QgsProject.instance().layerTreeRoot(),lyr.id())
@@ -387,6 +394,17 @@ class UniumPlugin:
                     break
             self.dockwidget.layersBox.enabled = True
 
+    def show_lyr_attrs(self,lyr):
+        attrs_names = [a.name() for a in lyr.fields()]
+        attrs_values = [[feat[i] for i in xrange(len(attrs_names))] for feat in lyr.getFeatures()]
+        self.dockwidget.tableView.setRowCount(len(attrs_values))
+        self.dockwidget.tableView.setColumnCount(len(attrs_names))
+        self.dockwidget.tableView.setHorizontalHeaderLabels(attrs_names)
+        for row in xrange(len(attrs_values)):
+            for col in xrange(len(attrs_names)):
+                item = QTableWidgetItem(u'%s' % attrs_values[row][col])
+                self.dockwidget.tableView.setItem(row,col,item)
+
     # create lyr for category
     @staticmethod
     def create_catlyr(uri,chain,cat_id):
@@ -399,12 +417,12 @@ class UniumPlugin:
     def set_subsets(lyr,name = '',descr = ''):
         subset_str = ''
         cat_filter = lyr.customProperty("cat_filter", "")
-        if cat_filter:
+        if cat_filter <> '':
             subset_str = u'("cat_id" = %s)' % cat_filter
-        if name:
+        if name <> '':
             subset_str += u' & ("name" like \'%{0}%\')'.format(name)
             lyr.setCustomProperty("name_filter", name)
-        if descr:
+        if descr <> '':
             subset_str += u' & ("descr" like \'%{0}%\')'.format(descr)
             lyr.setCustomProperty("descr_filter", descr)
         lyr.setSubsetString(subset_str)
@@ -413,7 +431,7 @@ class UniumPlugin:
     def reset_subsets(lyr):
         subset_str = ''
         cat_filter = lyr.customProperty("cat_filter", "")
-        if cat_filter:
+        if cat_filter <> '':
             subset_str = u'("cat_id" = %s)' % cat_filter
             lyr.setCustomProperty("name_filter", '')
             lyr.setCustomProperty("descr_filter", '')
@@ -421,8 +439,8 @@ class UniumPlugin:
 
     @staticmethod
     def load_subsets(lyr):
-        name_filter = lyr.setCustomProperty("name_filter", '')
-        descr_filter = lyr.setCustomProperty("descr_filter", '')
+        name_filter = lyr.customProperty("name_filter", '')
+        descr_filter = lyr.customProperty("descr_filter", '')
         UniumPlugin.set_subsets(lyr,name_filter,descr_filter)
     
     @staticmethod
