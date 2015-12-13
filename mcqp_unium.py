@@ -26,7 +26,7 @@ from PyQt4.QtCore import pyqtSlot,SIGNAL,SLOT
 from qgis.core import *
 from qgis.gui import *
 from lxml import etree
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 # Initialize Qt resources from file resources.py
 import resources, os, sqlite3, shutil, datetime, json, math
 
@@ -84,6 +84,7 @@ class UniumPlugin:
         # initialize layers data
         self.categories = {}
         self.layers = {}
+        self.src_info = {}
         self.selected_id = u''
 
         # default configuration
@@ -315,9 +316,13 @@ class UniumPlugin:
     def get_project_settings(self):
         # Читаем список категорий в формате {<id>:"<категория>"}
         self.categories = json.loads(QgsProject.instance().readEntry("UniumPlugin", "categories", "{}")[0])
+        self.src_info["database"] = QgsProject.instance().readEntry("UniumPlugin", "database", "")[0]
+        self.src_info["datatable"] = QgsProject.instance().readEntry("UniumPlugin", "datatable", "")[0]
 
     def set_project_settings(self):
         QgsProject.instance().writeEntry("UniumPlugin", "categories", json.dumps(self.categories))
+        QgsProject.instance().writeEntry("UniumPlugin", "database", self.src_info.get("database",""))
+        QgsProject.instance().writeEntry("UniumPlugin", "datatable", self.src_info.get("datatable",""))
 
     def updateSettingsUI(self):
         self.dockwidget.filefolderEdit.setText(self.config['files_folder'])
@@ -340,12 +345,14 @@ class UniumPlugin:
                 wb = Workbook()
                 ws = wb.active
                 self.dockwidget.layersBox.enabled = False
-                ws.append(["id","name","descr","sign","category_id","category_name"])
+                ws.append([u"Идентификатор",u"Наименование",u"Описание",u"Условный знак",u"Широта",u"Долгота",u"Номер категории",u"Категория"])
                 for lyr in self.iface.legendInterface().layers():
-                    if isinstance(lyr, QgsVectorLayer) and (lyr.id() == self.selected_id or self.selected_id == '0'):
+                    all_case = (self.selected_id == '0' and self.iface.legendInterface().isLayerVisible(lyr))
+                    if isinstance(lyr, QgsVectorLayer) and (lyr.id() == self.selected_id or all_case):
                         for feat in lyr.getFeatures():
-                            ws.append([feat["id"],feat["name"],feat["descr"],feat["sign"],feat["cat_id"],self.categories.get(unicode(feat["cat_id"]),u'')])
-                        if self.selected_id <> '0':
+                            geom = feat.geometry()
+                            ws.append([feat["id"],feat["name"],feat["descr"],feat["sign"],geom.asPoint().y(), geom.asPoint().x(),feat["cat_id"],self.categories.get(unicode(feat["cat_id"]),u'')])
+                        if not all_case:
                             break
                 wb.save(xls_filename)
                 msg = u"Выгрузка завершена"
@@ -356,6 +363,102 @@ class UniumPlugin:
             self.iface.messageBar().pushMessage("Error", msg, level=QgsMessageBar.CRITICAL, duration=7)
             QgsMessageLog.logMessage(msg, level=QgsMessageLog.CRITICAL)
 
+    def import_from_xls(self):
+        try:
+            # Open xls
+            xls_filename = self.dockwidget.xlsoutEdit.text()
+            wb = load_workbook(filename = xls_filename, read_only=True)
+            ws = wb.active
+
+            # Prepare work layer
+            uri = QgsDataSourceURI()
+            uri.setDatabase(self.src_info['database'])
+            uri.setDataSource('', src_info['datatable'], 'shape')
+
+            lyr = QgsVectorLayer(uri.uri(),src_info['datatable'],'spatialite')
+            pr = lyr.dataProvider()
+            lyr.startEditing()
+
+            # Checking for new categories
+            new_cats = {}
+            max_catid = self.get_max_catid()
+            c_catid = max_catid+1
+
+            for row in ws.rows:
+                if not row[6]:
+                    new_cats[row(7).value] = c_catid
+                    c_catid+=1
+
+            # Iterate rows
+            for row in ws.rows:
+                drow = {}
+                for i,cell in enumerate(row):
+                    drow[i] = cell.value
+                # If id field not empty - try update it
+                if drow[0]:
+                    lyr.beginEditCommand("Feature update")
+                    try:
+                        f_cat_id = drow[6]
+                        if not drow[6]:
+                            f_cat_id = new_cats[drow[7]]
+                        attrs = { 1 : drow[1], 2 : drow[2], 3: drow[3], 6: f_cat_id}
+                        geom = QgsGeometry.fromPoint(QgsPoint(drow[4].value.value,drow[5]))
+                        pr.changeAttributeValues({ drow[0] : attrs })
+                        pr.changeGeometryValues({ drow[0] : geom })
+                        lyr.endEditCommand()
+                    except Exception,err:
+                        lyr.destroyEditCommand()
+                        QgsMessageLog.logMessage(u'Ошибка при изменении метки id=%s: %s' % (drow[0],err), level=QgsMessageLog.CRITICAL)
+
+                # If id field is empty - try insert new mark
+                else:
+                    lyr.beginEditCommand("Feature insert")
+                    try:
+                        feature = QgsFeature()
+                        feature.setGeometry(QgsGeometry.fromPoint(QgsPoint(drow[4].value.value,drow[5])))
+                        fields = pr.fields()
+                        feature.setFields(fields)
+                        f_cat_id = drow[6]
+                        if not drow[6]:
+                            f_cat_id = new_cats[drow[7]]
+                        feature.setAttribute('name',drow[1])
+                        feature.setAttribute('descr',drow[2])
+                        feature.setAttribute('sign',drow[3])
+                        feature.setAttribute('cat_id',f_cat_id)
+                        pr.addFeatures([feature])
+                        lyr.endEditCommand()
+                    except Exception,err:
+                        lyr.destroyEditCommand()
+                        QgsMessageLog.logMessage(u'Ошибка при добавлении метки: %s' % err, level=QgsMessageLog.CRITICAL)
+            lyr.commitChanges()
+
+            lyr = None
+
+            root = QgsProject.instance().layerTreeRoot()
+
+            # Create and register new sublayers
+            for cat in new_cats.keys():
+                chain = cat.split(chr(92))
+                self.categories[new_cats[cat]] = cat
+
+                # Create sublayers for category
+                c_root = UniumPlugin.create_sublayers(root, chain)
+
+                # Create category vector layer
+                cat_lyr = self.create_catlyr(uri.uri(),chain[len(chain)-1],new_cats[cat])
+                self.layers[cat_lyr.id()] = {'name': cat_lyr.name(),
+                                    'subset': cat_lyr.subsetString(),
+                                    'path': chr(92).join(chain[:len(chain)-1]),
+                                    'full_name':chr(92).join(chain)}
+                QgsMapLayerRegistry.instance().addMapLayer(cat_lyr,False)
+                c_root.addLayer(cat_lyr)
+
+            self.set_project_settings()
+
+        except Exception, err:
+            msg = u"Ошибка при загрузке в Excel: %s" % err
+            self.iface.messageBar().pushMessage("Error", msg, level=QgsMessageBar.CRITICAL, duration=7)
+            QgsMessageLog.logMessage(msg, level=QgsMessageLog.CRITICAL)
 
     #--------------------------------------------------------------------------
 
@@ -415,16 +518,15 @@ class UniumPlugin:
             attrs_names = []
             attrs_values = []
             for lyr in self.iface.legendInterface().layers():
-                if isinstance(lyr, QgsVectorLayer) and (lyr.id() == self.selected_id or self.selected_id == '0'):
-                    QgsMessageLog.logMessage(u'Ler name: %s' % lyr.name(), level=QgsMessageLog.INFO)
+                all_case = (self.selected_id == '0' and self.iface.legendInterface().isLayerVisible(lyr))
+                if isinstance(lyr, QgsVectorLayer) and (lyr.id() == self.selected_id or all_case):
                     attrs_names = [a.name() for a in lyr.fields()]
                     attrs_values += [[feat[i] for i in xrange(len(attrs_names))] for feat in lyr.getFeatures()]
-                    if self.selected_id <> '0':
+                    if not all_case:
                         break
             self.dockwidget.tableView.setRowCount(len(attrs_values))
             self.dockwidget.tableView.setColumnCount(len(attrs_names))
             self.dockwidget.tableView.setHorizontalHeaderLabels(attrs_names)
-            QgsMessageLog.logMessage(u'Length data: %s' % len(attrs_values), level=QgsMessageLog.INFO)
             for row in xrange(len(attrs_values)):
                 for col in xrange(len(attrs_names)):
                     item = QTableWidgetItem(u'%s' % attrs_values[row][col])
@@ -448,6 +550,16 @@ class UniumPlugin:
         cat_lyr.setCustomProperty("cat_filter", cat_id)
         self.reset_subsets(cat_lyr)
         return cat_lyr
+
+    @staticmethod
+    def create_sublayers(root, chain):
+        c_root = root
+        for i in xrange(len(chain)-1):
+            c_node = c_root.findGroup(chain[i])
+            if not c_node:
+                c_node = c_root.addGroup(chain[i])
+            c_root = c_node
+        return c_root
 
     def set_subsets(self,lyr,name = '',descr = ''):
         subset_str = ''
@@ -506,6 +618,14 @@ class UniumPlugin:
         con.commit()
         con.close()
         return table_name
+
+    def get_max_catid(self):
+        con = sqlite3.connect(self.src_info["database"])
+        cur = con.cursor()
+        res = cur.execute('select max(cat_id) from %s' % self.src_info["datatable"])
+        max_id = res.fetchall()[0][0]
+        con.close()
+        return max_id
     
     def ParseSML(self):
         """Parse SAS Planet data to splite db and make layers tree"""
@@ -518,10 +638,12 @@ class UniumPlugin:
                 else:
                     UniumPlugin.create_db(self.sml_data['db_file'])
                 QgsMessageLog.logMessage(u'Новая база создана', level=QgsMessageLog.INFO)
+            self.src_info["database"] = self.sml_data['db_file']
             self.dockwidget.sasprogressBar.setValue(25)
             qApp.processEvents()
 
             self.sml_data['table'] = UniumPlugin.create_table(self.sml_data['db_file'],self.sml_data['table'])
+            self.src_info["datatable"] = self.sml_data['table']
             QgsMessageLog.logMessage(u'Новая таблица в базе создана', level=QgsMessageLog.INFO)
             self.dockwidget.sasprogressBar.setValue(50)
             qApp.processEvents()
@@ -599,16 +721,10 @@ class UniumPlugin:
                 self.categories[node.get('id')] = node.get('name')
 
                 # Create sublayers for category
-                c_root = root
-                for i in xrange(len(chain)-1):
-                    c_node = c_root.findGroup(chain[i])
-                    if not c_node:
-                        c_node = c_root.addGroup(chain[i])
-                    c_root = c_node
-                
+                c_root = UniumPlugin.create_sublayers(root, chain)
+
+                # Create category vector layer
                 cat_lyr = self.create_catlyr(uri.uri(),chain[len(chain)-1],int(node.get('id')))
-                #cat_lyr = QgsVectorLayer(uri.uri(), chain[len(chain)-1], 'spatialite')
-                #cat_lyr.setSubsetString('("cat_id" = \'%s\')' % node.get('id'))
                 self.layers[cat_lyr.id()] = {'name': cat_lyr.name(),
                                     'subset': cat_lyr.subsetString(),
                                     'path': chr(92).join(chain[:len(chain)-1]),
