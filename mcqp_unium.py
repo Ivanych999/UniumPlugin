@@ -21,7 +21,7 @@
  ***************************************************************************/
 """
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt, QVariant
-from PyQt4.QtGui import QAction, QIcon, QFileDialog, QTableWidgetItem, qApp
+from PyQt4.QtGui import QAction, QIcon, QFileDialog, QTableWidgetItem, qApp, QImage, QPixmap
 from PyQt4.QtCore import pyqtSlot,SIGNAL,SLOT
 from qgis.core import *
 from qgis.gui import *
@@ -88,8 +88,26 @@ class UniumPlugin:
         self.selected_id = u''
 
         # default configuration
-        default_config = """{"files_folder": "",
-                            "write_block": 50
+        self.default_config = """{"files_folder": "",
+                            "write_block": 50,
+                            "signs": {"school_2zone": {"alias": u"Школа (2 зона)", "png_src": ["blue.png"], "filename": "circle_house_blue"},
+                                      "school_3zone": {"alias": u"Школа (3 зона)", "png_src": ["green.png"], "filename": "circle_house_green"},
+                                      "school_1zone": {"alias": u"Школа (1 зона)", "png_src": ["red.png"], "filename": "circle_house_red"},
+                                      "school_repeat": {"alias": u"Школа (повтор)", "png_src": ["dopprohod.png","doprohod.png","yellow.png"], "filename": "circle_house_yellow"},
+                                      "school_center": {"alias": u"Образовательный центр", "png_src": ["stationnew.png"], "filename": "circle_house_black"},
+                                      "school_bad": {"alias": u"Не подходит", "png_src": ["neproshel.png"], "filename": "circle_cross2"},
+                                      "school_stop": {"alias": u"Не пустили", "png_src": ["nepustili.png"], "filename": "circle_minus2"},
+                                      "school_adv": {"alias": u"Объявления", "png_src": ["obyavlenie.png"], "filename": "triangle_warning2"},
+                                      "school_passed": {"alias": u"Пройдена", "png_src": ["proshel.png"], "filename": "circle_checktick2"},
+                                      "school_atwork": {"alias": u"Выдана агенту", "png_src": ["vydanaagentu.png"], "filename": "circle_helmet"},
+                                      "school_freepass": {"alias": u"Пройдена без договорённостей", "png_src": ["climbing.png"], "filename": "circle_climbing"},
+                                      "other_tools": {"alias": u"[Ремонт]", "png_src": ["carrepair.png"], "filename": "square_tools"},
+                                      "other_house": {"alias": u"[Дом]", "png_src": ["home.png"], "filename": "square_house_black"},
+                                      "other_stop": {"alias": u"[Стоп]", "png_src": ["stop.png"], "filename": "square_stop"},
+                                      "other_stoplight": {"alias": u"[Светофор]", "png_src": ["stoplight.png"], "filename": "square_trafficlights"},
+                                      "promo_red": {"alias": u"Промо (срочно)", "png_src": ["promogive.png"], "filename": "circle_pushpin_red"},
+                                      "promo_yellow": {"alias": u"Промо (обычный)", "png_src": ["promoter.png"], "filename": "circle_pushpin_yellow"},
+                                      "promo_green": {"alias": u"Промо (хороший)", "png_src": ["promotergood.png"], "filename": "circle_pushpin_green"}
                             }
                             """
 
@@ -257,6 +275,8 @@ class UniumPlugin:
                 self.dockwidget.resetFilterButton.clicked.connect(self.resetFilterButton_clicked)
                 self.dockwidget.brwsxlsoutButton.clicked.connect(self.select_out_excel_file)
                 self.dockwidget.xlsoutButton.clicked.connect(self.export_to_xls)
+                self.dockwidget.brwsxlsinButton.clicked.connect(self.select_in_excel_file)
+                self.dockwidget.xlsinButton.clicked.connect(self.import_from_xls)
                 #self.dockwidget.layersBox.connect(self.dockwidget.layersBox,SIGNAL("currentIndexChanged(int)"),self.dockwidget,SLOT("self.selected_layer_changed(int)"))
                 
             self.dockwidget.layersBox.currentIndex = 1
@@ -293,9 +313,10 @@ class UniumPlugin:
                 return
             except Exception,err:
                 msg = u"Ошибка при загрузке конфигурационного файла: %s. Будет загружена конфигурация по-умолчанию" % err
-        else:
-            self.iface.messageBar().pushMessage("Warning", msg, level=QgsMessageBar.WARNING, duration=7)
-            QgsMessageLog.logMessage(msg, level=QgsMessageLog.WARNING)
+                self.config = self.default_config
+        self.iface.messageBar().pushMessage("Warning", msg, level=QgsMessageBar.WARNING, duration=7)
+        QgsMessageLog.logMessage(msg, level=QgsMessageLog.WARNING)
+        return
 
     def setSettings(self):
         config_file = os.path.join(os.path.dirname(__file__),'mcqp_unium_config.json')
@@ -320,13 +341,39 @@ class UniumPlugin:
         self.src_info["datatable"] = QgsProject.instance().readEntry("UniumPlugin", "datatable", "")[0]
 
     def set_project_settings(self):
-        QgsProject.instance().writeEntry("UniumPlugin", "categories", json.dumps(self.categories))
-        QgsProject.instance().writeEntry("UniumPlugin", "database", self.src_info.get("database",""))
-        QgsProject.instance().writeEntry("UniumPlugin", "datatable", self.src_info.get("datatable",""))
+        if QgsProject:
+            QgsProject.instance().writeEntry("UniumPlugin", "categories", json.dumps(self.categories))
+            QgsProject.instance().writeEntry("UniumPlugin", "database", self.src_info.get("database",""))
+            QgsProject.instance().writeEntry("UniumPlugin", "datatable", self.src_info.get("datatable",""))
 
     def updateSettingsUI(self):
         self.dockwidget.filefolderEdit.setText(self.config['files_folder'])
         self.dockwidget.wrblkBox.setValue(self.config['write_block'])
+
+    #--------------------------------------------------------------------------
+
+    def get_sign_by_src(self,png_src):
+        for sign_key in self.config.get("signs",{}).keys():
+            if png_src in self.config["signs"][sign_key].get("png_src",[]):
+                return sign_key
+        return ''
+
+    def get_sign_by_alias(self,alias):
+        for sign_key in self.config.get("signs",{}).keys():
+            if alias == self.config["signs"][sign_key].get("alias",""):
+                return sign_key
+        return ''
+
+    def get_sign_image(self,sign):
+        img_path = os.path.join(self.plugin_dir,'images','png','%s.png' % self.config["signs"].get(sign,{}).get("filename",'image'))
+        if os.path.exists(img_path):
+            image = QImage()
+            image.load(img_path)
+            pm = QPixmap.fromImage(image)
+            return pm
+        else:
+            return False
+
 
     #--------------------------------------------------------------------------
 
@@ -351,7 +398,7 @@ class UniumPlugin:
                     if isinstance(lyr, QgsVectorLayer) and (lyr.id() == self.selected_id or all_case):
                         for feat in lyr.getFeatures():
                             geom = feat.geometry()
-                            ws.append([feat["id"],feat["name"],feat["descr"],feat["sign"],geom.asPoint().y(), geom.asPoint().x(),feat["cat_id"],self.categories.get(unicode(feat["cat_id"]),u'')])
+                            ws.append([feat["id"],feat["name"],feat["descr"],self.config.get("signs",{}).get(feat["sign"],{}).get("alias",""),geom.asPoint().y(), geom.asPoint().x(),feat["cat_id"],self.categories.get(unicode(feat["cat_id"]),u'')])
                         if not all_case:
                             break
                 wb.save(xls_filename)
@@ -366,16 +413,16 @@ class UniumPlugin:
     def import_from_xls(self):
         try:
             # Open xls
-            xls_filename = self.dockwidget.xlsoutEdit.text()
-            wb = load_workbook(filename = xls_filename, read_only=True)
+            xls_filename = self.dockwidget.xlsinEdit.text()
+            wb = load_workbook(filename = xls_filename)
             ws = wb.active
 
             # Prepare work layer
             uri = QgsDataSourceURI()
             uri.setDatabase(self.src_info['database'])
-            uri.setDataSource('', src_info['datatable'], 'shape')
+            uri.setDataSource('', self.src_info['datatable'], 'shape')
 
-            lyr = QgsVectorLayer(uri.uri(),src_info['datatable'],'spatialite')
+            lyr = QgsVectorLayer(uri.uri(),self.src_info['datatable'],'spatialite')
             pr = lyr.dataProvider()
             lyr.startEditing()
 
@@ -385,54 +432,64 @@ class UniumPlugin:
             c_catid = max_catid+1
 
             for row in ws.rows:
-                if not row[6]:
-                    new_cats[row(7).value] = c_catid
-                    c_catid+=1
+                if row[0].value == u"Идентификатор":
+                    continue
+                else:
+                    if not row[6].value:
+                        if row[7].value in self.categories.values():
+                            new_cats[row[7].value] = self.get_catid_by_path(row[7].value)
+                        else:
+                            new_cats[row[7].value] = c_catid
+                            c_catid+=1
 
             # Iterate rows
+            check_nulls = lambda val: val if val else ''
             for row in ws.rows:
-                drow = {}
-                for i,cell in enumerate(row):
-                    drow[i] = cell.value
-                # If id field not empty - try update it
-                if drow[0]:
-                    lyr.beginEditCommand("Feature update")
-                    try:
-                        f_cat_id = drow[6]
-                        if not drow[6]:
-                            f_cat_id = new_cats[drow[7]]
-                        attrs = { 1 : drow[1], 2 : drow[2], 3: drow[3], 6: f_cat_id}
-                        geom = QgsGeometry.fromPoint(QgsPoint(drow[4].value.value,drow[5]))
-                        pr.changeAttributeValues({ drow[0] : attrs })
-                        pr.changeGeometryValues({ drow[0] : geom })
-                        lyr.endEditCommand()
-                    except Exception,err:
-                        lyr.destroyEditCommand()
-                        QgsMessageLog.logMessage(u'Ошибка при изменении метки id=%s: %s' % (drow[0],err), level=QgsMessageLog.CRITICAL)
-
-                # If id field is empty - try insert new mark
+                if row[0].value == u"Идентификатор":
+                    continue
                 else:
-                    lyr.beginEditCommand("Feature insert")
-                    try:
-                        feature = QgsFeature()
-                        feature.setGeometry(QgsGeometry.fromPoint(QgsPoint(drow[4].value.value,drow[5])))
-                        fields = pr.fields()
-                        feature.setFields(fields)
-                        f_cat_id = drow[6]
-                        if not drow[6]:
-                            f_cat_id = new_cats[drow[7]]
-                        feature.setAttribute('name',drow[1])
-                        feature.setAttribute('descr',drow[2])
-                        feature.setAttribute('sign',drow[3])
-                        feature.setAttribute('cat_id',f_cat_id)
-                        pr.addFeatures([feature])
-                        lyr.endEditCommand()
-                    except Exception,err:
-                        lyr.destroyEditCommand()
-                        QgsMessageLog.logMessage(u'Ошибка при добавлении метки: %s' % err, level=QgsMessageLog.CRITICAL)
-            lyr.commitChanges()
+                    drow = {}
+                    for i,cell in enumerate(row):
+                        drow[i] = cell.value
+                    # If id field not empty - try update it
+                    if drow[0]:
+                        lyr.beginEditCommand("Feature update")
+                        try:
+                            f_cat_id = drow[6]
+                            if not drow[6]:
+                                f_cat_id = new_cats[drow[7]]
+                            attrs = { 1 : check_nulls(drow[1]), 2 : check_nulls(drow[2]), 3: self.get_sign_by_alias(drow[3]), 4: f_cat_id}
+                            geom = QgsGeometry.fromPoint(QgsPoint(drow[5],drow[4]))
+                            pr.changeAttributeValues({ drow[0] : attrs })
+                            pr.changeGeometryValues({ drow[0] : geom })
+                            lyr.endEditCommand()
+                        except Exception,err:
+                            lyr.destroyEditCommand()
+                            QgsMessageLog.logMessage(u'Ошибка при изменении метки id=%s: %s' % (drow[0],err), level=QgsMessageLog.CRITICAL)
 
+                    # If id field is empty - try insert new mark
+                    else:
+                        lyr.beginEditCommand("Feature insert")
+                        try:
+                            feature = QgsFeature()
+                            feature.setGeometry(QgsGeometry.fromPoint(QgsPoint(drow[5],drow[4])))
+                            fields = pr.fields()
+                            feature.setFields(fields)
+                            f_cat_id = drow[6]
+                            if not f_cat_id:
+                                f_cat_id = new_cats[drow[7]]
+                            feature.setAttribute('name',check_nulls(drow[1]))
+                            feature.setAttribute('descr',check_nulls(drow[2]))
+                            feature.setAttribute('sign',self.get_sign_by_alias(drow[3]))
+                            feature.setAttribute('cat_id',f_cat_id)
+                            pr.addFeatures([feature])
+                            lyr.endEditCommand()
+                        except Exception,err:
+                            lyr.destroyEditCommand()
+                            QgsMessageLog.logMessage(u'Ошибка при добавлении метки: %s' % err, level=QgsMessageLog.CRITICAL)
+            lyr.commitChanges()
             lyr = None
+            wb.save(xls_filename)
 
             root = QgsProject.instance().layerTreeRoot()
 
@@ -440,20 +497,30 @@ class UniumPlugin:
             for cat in new_cats.keys():
                 chain = cat.split(chr(92))
                 self.categories[new_cats[cat]] = cat
-
+                QgsMessageLog.logMessage(u'2', level=QgsMessageLog.INFO)
                 # Create sublayers for category
                 c_root = UniumPlugin.create_sublayers(root, chain)
-
+                QgsMessageLog.logMessage(u'3', level=QgsMessageLog.INFO)
                 # Create category vector layer
                 cat_lyr = self.create_catlyr(uri.uri(),chain[len(chain)-1],new_cats[cat])
+                QgsMessageLog.logMessage(u'4', level=QgsMessageLog.INFO)
                 self.layers[cat_lyr.id()] = {'name': cat_lyr.name(),
                                     'subset': cat_lyr.subsetString(),
                                     'path': chr(92).join(chain[:len(chain)-1]),
                                     'full_name':chr(92).join(chain)}
+                QgsMessageLog.logMessage(u'5', level=QgsMessageLog.INFO)
                 QgsMapLayerRegistry.instance().addMapLayer(cat_lyr,False)
+                QgsMessageLog.logMessage(u'6', level=QgsMessageLog.INFO)
                 c_root.addLayer(cat_lyr)
+                QgsMessageLog.logMessage(u'7', level=QgsMessageLog.INFO)
 
             self.set_project_settings()
+            self.iface.mapCanvas().refreshAllLayers()
+            self.update_TView()
+            self.update_layers_list()
+            msg = u"Загрузка завершена"
+            self.iface.messageBar().pushMessage(u"Загрузка в Excel", msg, level=QgsMessageBar.INFO, duration=7)
+            QgsMessageLog.logMessage(msg, level=QgsMessageLog.INFO)
 
         except Exception, err:
             msg = u"Ошибка при загрузке в Excel: %s" % err
@@ -515,12 +582,12 @@ class UniumPlugin:
     def update_TView(self):
         if self.selected_id in self.layers.keys():
             self.dockwidget.layersBox.enabled = False
-            attrs_names = []
+            attrs_names = [u"Идентификатор",u"Наименование",u"Описание",u"Условный знак"]
             attrs_values = []
             for lyr in self.iface.legendInterface().layers():
                 all_case = (self.selected_id == '0' and self.iface.legendInterface().isLayerVisible(lyr))
                 if isinstance(lyr, QgsVectorLayer) and (lyr.id() == self.selected_id or all_case):
-                    attrs_names = [a.name() for a in lyr.fields()]
+                    #attrs_names = [a.name() for a in lyr.fields()]
                     attrs_values += [[feat[i] for i in xrange(len(attrs_names))] for feat in lyr.getFeatures()]
                     if not all_case:
                         break
@@ -529,7 +596,15 @@ class UniumPlugin:
             self.dockwidget.tableView.setHorizontalHeaderLabels(attrs_names)
             for row in xrange(len(attrs_values)):
                 for col in xrange(len(attrs_names)):
-                    item = QTableWidgetItem(u'%s' % attrs_values[row][col])
+                    if col < len(attrs_names) - 1:
+                        item = QTableWidgetItem(u'%s' % attrs_values[row][col])
+                    else:
+                        pm = self.get_sign_image(attrs_values[row][col])
+                        if pm:
+                            item = QTableWidgetItem()
+                            item.setData(Qt.DecorationRole, pm.scaled(20, 20))
+                        else:
+                            item = QTableWidgetItem(u'%s' % attrs_values[row][col])
                     self.dockwidget.tableView.setItem(row,col,item)
             self.dockwidget.layersBox.enabled = True
 
@@ -550,6 +625,12 @@ class UniumPlugin:
         cat_lyr.setCustomProperty("cat_filter", cat_id)
         self.reset_subsets(cat_lyr)
         return cat_lyr
+
+    def get_catid_by_path(self,path):
+        for catid in self.categories.keys():
+            if self.categories[catid] == path:
+                return int(catid)
+        return -1
 
     @staticmethod
     def create_sublayers(root, chain):
@@ -682,7 +763,7 @@ class UniumPlugin:
                 feature.setFields(fields)
                 feature.setAttribute('name',node.get('name'))
                 feature.setAttribute('descr',node.get('descr'))
-                feature.setAttribute('sign',node.get('picname'))
+                feature.setAttribute('sign',self.get_sign_by_src(node.get('picname')))
                 feature.setAttribute('cat_id',int(node.get('categoryid')))
                 features.append(feature)
                 if len(features) == groups[group_idx]:
@@ -810,5 +891,9 @@ class UniumPlugin:
                 self.update_TView()
 
     def select_out_excel_file(self):
-        xls_file = QFileDialog.getSaveFileName(self.dockwidget, "Select Excel file file ", '',"Excel files (*.xlsx)")
+        xls_file = QFileDialog.getSaveFileName(self.dockwidget, "Select Excel file ", '',"Excel files (*.xlsx)")
         self.dockwidget.xlsoutEdit.setText(xls_file)
+
+    def select_in_excel_file(self):
+        xls_file = QFileDialog.getOpenFileName(self.dockwidget, "Select Excel file ", '',"Excel files (*.xlsx)")
+        self.dockwidget.xlsinEdit.setText(xls_file)

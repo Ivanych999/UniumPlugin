@@ -23,6 +23,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="icon.png" />
+    <Content Include="mcqp_unium_config.json" />
     <Content Include="metadata.txt" />
     <Content Include="README.html" />
     <Content Include="README.txt" />

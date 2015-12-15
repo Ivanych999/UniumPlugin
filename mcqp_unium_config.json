@@ -1,1 +1,96 @@
-{"files_folder": "D:\\OSGeo4W64\\bin\\gdalplugins", "write_block": 50}
+{
+	"files_folder" : "D:\\OSGeo4W64\\bin\\gdalplugins",
+	"write_block" : 50,
+	"signs" : {
+		"school_2zone" : {
+			"alias" : "Школа (2 зона)",
+			"png_src" : ["blue.png"],
+			"filename" : "circle_house_blue"
+		},
+		"school_3zone" : {
+			"alias" : "Школа (3 зона)",
+			"png_src" : ["green.png"],
+			"filename" : "circle_house_green"
+		},
+		"school_1zone" : {
+			"alias" : "Школа (1 зона)",
+			"png_src" : ["red.png"],
+			"filename" : "circle_house_red"
+		},
+		"school_repeat" : {
+			"alias" : "Школа (повтор)",
+			"png_src" : ["dopprohod.png", "doprohod.png", "yellow.png"],
+			"filename" : "circle_house_yellow"
+		},
+		"school_center" : {
+			"alias" : "Образовательный центр",
+			"png_src" : ["stationnew.png"],
+			"filename" : "circle_house_black"
+		},
+		"school_bad" : {
+			"alias" : "Не подходит",
+			"png_src" : ["neproshel.png"],
+			"filename" : "circle_cross2"
+		},
+		"school_stop" : {
+			"alias" : "Не пустили",
+			"png_src" : ["nepustili.png"],
+			"filename" : "circle_minus2"
+		},
+		"school_adv" : {
+			"alias" : "Объявления",
+			"png_src" : ["obyavlenie.png"],
+			"filename" : "triangle_warning2"
+		},
+		"school_passed" : {
+			"alias" : "Пройдена",
+			"png_src" : ["proshel.png"],
+			"filename" : "circle_checktick2"
+		},
+		"school_atwork" : {
+			"alias" : "Выдана агенту",
+			"png_src" : ["vydanaagentu.png"],
+			"filename" : "circle_helmet"
+		},
+		"school_freepass" : {
+			"alias" : "Пройдена без договорённостей",
+			"png_src" : ["climbing.png"],
+			"filename" : "circle_climbing"
+		},
+		"other_tools" : {
+			"alias" : "[Ремонт]",
+			"png_src" : ["carrepair.png"],
+			"filename" : "square_tools"
+		},
+		"other_house" : {
+			"alias" : "[Дом]",
+			"png_src" : ["home.png"],
+			"filename" : "square_house_black"
+		},
+		"other_stop" : {
+			"alias" : "[Стоп]",
+			"png_src" : ["stop.png"],
+			"filename" : "square_stop"
+		},
+		"other_stoplight" : {
+			"alias" : "[Светофор]",
+			"png_src" : ["stoplight.png"],
+			"filename" : "square_trafficlights"
+		},
+		"promo_red" : {
+			"alias" : "Промо (срочно)",
+			"png_src" : ["promogive.png"],
+			"filename" : "circle_pushpin_red"
+		},
+		"promo_yellow" : {
+			"alias" : "Промо (обычный)",
+			"png_src" : ["promoter.png"],
+			"filename" : "circle_pushpin_yellow"
+		},
+		"promo_green" : {
+			"alias" : "Промо (хороший)",
+			"png_src" : ["promotergood.png"],
+			"filename" : "circle_pushpin_green"
+		}
+	}
+}
