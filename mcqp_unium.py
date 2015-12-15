@@ -877,7 +877,10 @@ class UniumPlugin:
             if isinstance(lyr, QgsVectorLayer) and lyr.id() == self.selected_id:
                 self.set_subsets(lyr,name_filter,descr_filter)
                 extent = lyr.extent()
-                self.iface.mapCanvas().setExtent(extent)
+                transf = QgsCoordinateTransform(lyr.crs(), self.iface.mapCanvas().mapSettings().destinationCrs())
+                self.iface.mapCanvas().setExtent(transf.transform(extent))
+                #self.iface.mapCanvas().zoomWithCenter(center.x(),center.y(), True)
+                self.iface.mapCanvas().refresh()
                 self.update_TView()
 
     def resetFilterButton_clicked(self):
@@ -887,7 +890,12 @@ class UniumPlugin:
             if isinstance(lyr, QgsVectorLayer) and lyr.id() == self.selected_id:
                 self.reset_subsets(lyr)
                 extent = lyr.extent()
-                self.iface.mapCanvas().setExtent(extent)
+                #center = extent.center()
+                #self.iface.mapCanvas().setExtent(extent)
+                #self.iface.mapCanvas().zoomWithCenter(center.x(),center.y(), True)
+                transf = QgsCoordinateTransform(lyr.crs(), self.iface.mapCanvas().mapSettings().destinationCrs())
+                self.iface.mapCanvas().setExtent(transf.transform(extent))
+                self.iface.mapCanvas().refresh()
                 self.update_TView()
 
     def select_out_excel_file(self):
