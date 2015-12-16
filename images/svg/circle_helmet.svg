@@ -13,8 +13,8 @@
    height="512"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.4 r9939"
-   sodipodi:docname="circle_minus.svg">
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="circle_helmet.svg">
   <defs
      id="defs4" />
   <sodipodi:namedview
@@ -25,14 +25,14 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
-     inkscape:cx="261.24849"
+     inkscape:cx="79.421031"
      inkscape:cy="259.69139"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1920"
-     inkscape:window-height="1137"
-     inkscape:window-x="1912"
+     inkscape:window-width="1366"
+     inkscape:window-height="706"
+     inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1" />
   <metadata
@@ -43,7 +43,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -53,20 +53,16 @@
      id="layer1"
      transform="translate(0,-540.36218)">
     <g
-       id="g3960">
-      <path
-         transform="matrix(0.9627265,0,0,0.97061772,5.0948403,546.48484)"
-         d="m 509.11688,257.44156 a 248.49753,246.47722 0 1 1 -496.995054,0 248.49753,246.47722 0 1 1 496.995054,0 z"
-         sodipodi:ry="246.47722"
-         sodipodi:rx="248.49753"
-         sodipodi:cy="257.44156"
-         sodipodi:cx="260.61935"
+       id="g4146">
+      <circle
+         r="239.23515"
          id="path2985"
-         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ff00ff;stroke-width:26.89662360999999900;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
-         sodipodi:type="arc" />
+         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ff00ff;stroke-width:26;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         cx="256"
+         cy="796.36218" />
       <g
          style="fill:#ff00ff;fill-opacity:1"
-         transform="matrix(2.5630283,0,0,2.9459134,127.84803,649.06567)"
+         transform="matrix(3.5882396,0,0,4.050631,76.587239,593.82948)"
          id="g3952">
         <g
            style="fill:#ff00ff;fill-opacity:1"

@@ -86,6 +86,8 @@ class UniumPlugin:
         self.layers = {}
         self.src_info = {}
         self.selected_id = u''
+        self.mercator = QgsCoordinateReferenceSystem()
+        self.mercator.createFromProj4(u'+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs')
 
         # default configuration
         self.default_config = """{"files_folder": "",
@@ -105,6 +107,7 @@ class UniumPlugin:
                                       "other_house": {"alias": u"[Дом]", "png_src": ["home.png"], "filename": "square_house_black"},
                                       "other_stop": {"alias": u"[Стоп]", "png_src": ["stop.png"], "filename": "square_stop"},
                                       "other_stoplight": {"alias": u"[Светофор]", "png_src": ["stoplight.png"], "filename": "square_trafficlights"},
+                                      "other_unknown" : {"alias" : "[без знака]", "filename" : "circle_unknown_grey"},
                                       "promo_red": {"alias": u"Промо (срочно)", "png_src": ["promogive.png"], "filename": "circle_pushpin_red"},
                                       "promo_yellow": {"alias": u"Промо (обычный)", "png_src": ["promoter.png"], "filename": "circle_pushpin_yellow"},
                                       "promo_green": {"alias": u"Промо (хороший)", "png_src": ["promotergood.png"], "filename": "circle_pushpin_green"}
@@ -362,7 +365,7 @@ class UniumPlugin:
         for sign_key in self.config.get("signs",{}).keys():
             if alias == self.config["signs"][sign_key].get("alias",""):
                 return sign_key
-        return ''
+        return 'other_unknown'
 
     def get_sign_image(self,sign):
         img_path = os.path.join(self.plugin_dir,'images','png','%s.png' % self.config["signs"].get(sign,{}).get("filename",'image'))
@@ -378,154 +381,154 @@ class UniumPlugin:
     #--------------------------------------------------------------------------
 
     def export_to_xls(self):
-        try:
-            xls_filename = self.dockwidget.xlsoutEdit.text()
-            if os.path.exists(xls_filename):
-                try:
-                    os.remove(xls_filename)
-                except Exception, err:
-                    msg = u"Ошибка при удалении файла %s : %s" % (unicode(xls_filename),err)
-                    self.iface.messageBar().pushMessage("Error", msg, level=QgsMessageBar.CRITICAL, duration=7)
-                    QgsMessageLog.logMessage(msg, level=QgsMessageLog.CRITICAL)
-                    return
-            if self.selected_id in self.layers.keys():
-                wb = Workbook()
-                ws = wb.active
-                self.dockwidget.layersBox.enabled = False
-                ws.append([u"Идентификатор",u"Наименование",u"Описание",u"Условный знак",u"Широта",u"Долгота",u"Номер категории",u"Категория"])
-                for lyr in self.iface.legendInterface().layers():
-                    all_case = (self.selected_id == '0' and self.iface.legendInterface().isLayerVisible(lyr))
-                    if isinstance(lyr, QgsVectorLayer) and (lyr.id() == self.selected_id or all_case):
-                        for feat in lyr.getFeatures():
-                            geom = feat.geometry()
-                            ws.append([feat["id"],feat["name"],feat["descr"],self.config.get("signs",{}).get(feat["sign"],{}).get("alias",""),geom.asPoint().y(), geom.asPoint().x(),feat["cat_id"],self.categories.get(unicode(feat["cat_id"]),u'')])
-                        if not all_case:
-                            break
-                wb.save(xls_filename)
-                msg = u"Выгрузка завершена"
-            self.iface.messageBar().pushMessage(u"Выгрузка в Excel", msg, level=QgsMessageBar.INFO, duration=7)
-            QgsMessageLog.logMessage(msg, level=QgsMessageLog.INFO)
-        except Exception, err:
-            msg = u"Ошибка при выгрузке в Excel: %s" % err
-            self.iface.messageBar().pushMessage("Error", msg, level=QgsMessageBar.CRITICAL, duration=7)
-            QgsMessageLog.logMessage(msg, level=QgsMessageLog.CRITICAL)
+        if self.dockwidget.xlsoutEdit.text():
+            try:
+                xls_filename = self.dockwidget.xlsoutEdit.text()
+                if os.path.exists(xls_filename):
+                    try:
+                        os.remove(xls_filename)
+                    except Exception, err:
+                        msg = u"Ошибка при удалении файла %s : %s" % (unicode(xls_filename),err)
+                        self.iface.messageBar().pushMessage("Error", msg, level=QgsMessageBar.CRITICAL, duration=7)
+                        QgsMessageLog.logMessage(msg, level=QgsMessageLog.CRITICAL)
+                        return
+                if self.selected_id in self.layers.keys():
+                    wb = Workbook()
+                    ws = wb.active
+                    self.dockwidget.layersBox.enabled = False
+                    ws.append([u"Идентификатор",u"Наименование",u"Описание",u"Условный знак",u"Широта",u"Долгота",u"Номер категории",u"Категория"])
+                    lyrs = self.iface.legendInterface().layers()
+                    for lyr in lyrs:
+                        all_case = (self.selected_id == '0' and self.iface.legendInterface().isLayerVisible(lyr))
+                        if isinstance(lyr, QgsVectorLayer) and (lyr.id() == self.selected_id or all_case):
+                            features = lyr.getFeatures()
+                            for feat in features:
+                                geom = feat.geometry()
+                                ws.append([feat["id"],feat["name"],feat["descr"],self.config.get("signs",{}).get(feat["sign"],{}).get("alias",""),geom.asPoint().y(), geom.asPoint().x(),feat["cat_id"],self.categories.get(unicode(feat["cat_id"]),u'')])
+                            if not all_case:
+                                break
+                    wb.save(xls_filename)
+                    msg = u"Выгрузка завершена"
+                self.iface.messageBar().pushMessage(u"Выгрузка в Excel", msg, level=QgsMessageBar.INFO, duration=7)
+                QgsMessageLog.logMessage(msg, level=QgsMessageLog.INFO)
+            except Exception, err:
+                msg = u"Ошибка при выгрузке в Excel: %s" % err
+                self.iface.messageBar().pushMessage("Error", msg, level=QgsMessageBar.CRITICAL, duration=7)
+                QgsMessageLog.logMessage(msg, level=QgsMessageLog.CRITICAL)
 
     def import_from_xls(self):
-        try:
-            # Open xls
-            xls_filename = self.dockwidget.xlsinEdit.text()
-            wb = load_workbook(filename = xls_filename)
-            ws = wb.active
+        if self.dockwidget.xlsinEdit.text():
+            try:
+                # Open xls
+                xls_filename = self.dockwidget.xlsinEdit.text()
+                wb = load_workbook(filename = xls_filename)
+                ws = wb.active
 
-            # Prepare work layer
-            uri = QgsDataSourceURI()
-            uri.setDatabase(self.src_info['database'])
-            uri.setDataSource('', self.src_info['datatable'], 'shape')
+                # Prepare work layer
+                uri = QgsDataSourceURI()
+                uri.setDatabase(self.src_info['database'])
+                uri.setDataSource('', self.src_info['datatable'], 'shape')
 
-            lyr = QgsVectorLayer(uri.uri(),self.src_info['datatable'],'spatialite')
-            pr = lyr.dataProvider()
-            lyr.startEditing()
+                lyr = QgsVectorLayer(uri.uri(),self.src_info['datatable'],'spatialite')
+                pr = lyr.dataProvider()
+                lyr.startEditing()
 
-            # Checking for new categories
-            new_cats = {}
-            max_catid = self.get_max_catid()
-            c_catid = max_catid+1
+                # Checking for new categories
+                new_cats = {}
+                max_catid = self.get_max_catid()
+                c_catid = max_catid+1
 
-            for row in ws.rows:
-                if row[0].value == u"Идентификатор":
-                    continue
-                else:
-                    if not row[6].value:
-                        if row[7].value in self.categories.values():
-                            new_cats[row[7].value] = self.get_catid_by_path(row[7].value)
-                        else:
-                            new_cats[row[7].value] = c_catid
-                            c_catid+=1
-
-            # Iterate rows
-            check_nulls = lambda val: val if val else ''
-            for row in ws.rows:
-                if row[0].value == u"Идентификатор":
-                    continue
-                else:
-                    drow = {}
-                    for i,cell in enumerate(row):
-                        drow[i] = cell.value
-                    # If id field not empty - try update it
-                    if drow[0]:
-                        lyr.beginEditCommand("Feature update")
-                        try:
-                            f_cat_id = drow[6]
-                            if not drow[6]:
-                                f_cat_id = new_cats[drow[7]]
-                            attrs = { 1 : check_nulls(drow[1]), 2 : check_nulls(drow[2]), 3: self.get_sign_by_alias(drow[3]), 4: f_cat_id}
-                            geom = QgsGeometry.fromPoint(QgsPoint(drow[5],drow[4]))
-                            pr.changeAttributeValues({ drow[0] : attrs })
-                            pr.changeGeometryValues({ drow[0] : geom })
-                            lyr.endEditCommand()
-                        except Exception,err:
-                            lyr.destroyEditCommand()
-                            QgsMessageLog.logMessage(u'Ошибка при изменении метки id=%s: %s' % (drow[0],err), level=QgsMessageLog.CRITICAL)
-
-                    # If id field is empty - try insert new mark
+                for row in ws.rows:
+                    if row[0].value == u"Идентификатор":
+                        continue
                     else:
-                        lyr.beginEditCommand("Feature insert")
-                        try:
-                            feature = QgsFeature()
-                            feature.setGeometry(QgsGeometry.fromPoint(QgsPoint(drow[5],drow[4])))
-                            fields = pr.fields()
-                            feature.setFields(fields)
-                            f_cat_id = drow[6]
-                            if not f_cat_id:
-                                f_cat_id = new_cats[drow[7]]
-                            feature.setAttribute('name',check_nulls(drow[1]))
-                            feature.setAttribute('descr',check_nulls(drow[2]))
-                            feature.setAttribute('sign',self.get_sign_by_alias(drow[3]))
-                            feature.setAttribute('cat_id',f_cat_id)
-                            pr.addFeatures([feature])
-                            lyr.endEditCommand()
-                        except Exception,err:
-                            lyr.destroyEditCommand()
-                            QgsMessageLog.logMessage(u'Ошибка при добавлении метки: %s' % err, level=QgsMessageLog.CRITICAL)
-            lyr.commitChanges()
-            lyr = None
-            wb.save(xls_filename)
+                        if not row[6].value:
+                            if row[7].value in self.categories.values():
+                                new_cats[row[7].value] = self.get_catid_by_path(row[7].value)
+                            else:
+                                new_cats[row[7].value] = c_catid
+                                c_catid+=1
 
-            root = QgsProject.instance().layerTreeRoot()
+                # Iterate rows
+                check_nulls = lambda val: val if val else ''
+                for row in ws.rows:
+                    if row[0].value == u"Идентификатор":
+                        continue
+                    else:
+                        drow = {}
+                        for i,cell in enumerate(row):
+                            drow[i] = cell.value
+                        # If id field not empty - try update it
+                        if drow[0]:
+                            lyr.beginEditCommand("Feature update")
+                            try:
+                                f_cat_id = drow[6]
+                                if not drow[6]:
+                                    f_cat_id = new_cats[drow[7]]
+                                attrs = { 1 : check_nulls(drow[1]), 2 : check_nulls(drow[2]), 3: self.get_sign_by_alias(drow[3]), 4: f_cat_id}
+                                geom = QgsGeometry.fromPoint(QgsPoint(drow[5],drow[4]))
+                                pr.changeAttributeValues({ drow[0] : attrs })
+                                pr.changeGeometryValues({ drow[0] : geom })
+                                lyr.endEditCommand()
+                            except Exception,err:
+                                lyr.destroyEditCommand()
+                                QgsMessageLog.logMessage(u'Ошибка при изменении метки id=%s: %s' % (drow[0],err), level=QgsMessageLog.CRITICAL)
 
-            # Create and register new sublayers
-            for cat in new_cats.keys():
-                chain = cat.split(chr(92))
-                self.categories[new_cats[cat]] = cat
-                QgsMessageLog.logMessage(u'2', level=QgsMessageLog.INFO)
-                # Create sublayers for category
-                c_root = UniumPlugin.create_sublayers(root, chain)
-                QgsMessageLog.logMessage(u'3', level=QgsMessageLog.INFO)
-                # Create category vector layer
-                cat_lyr = self.create_catlyr(uri.uri(),chain[len(chain)-1],new_cats[cat])
-                QgsMessageLog.logMessage(u'4', level=QgsMessageLog.INFO)
-                self.layers[cat_lyr.id()] = {'name': cat_lyr.name(),
-                                    'subset': cat_lyr.subsetString(),
-                                    'path': chr(92).join(chain[:len(chain)-1]),
-                                    'full_name':chr(92).join(chain)}
-                QgsMessageLog.logMessage(u'5', level=QgsMessageLog.INFO)
-                QgsMapLayerRegistry.instance().addMapLayer(cat_lyr,False)
-                QgsMessageLog.logMessage(u'6', level=QgsMessageLog.INFO)
-                c_root.addLayer(cat_lyr)
-                QgsMessageLog.logMessage(u'7', level=QgsMessageLog.INFO)
+                        # If id field is empty - try insert new mark
+                        else:
+                            lyr.beginEditCommand("Feature insert")
+                            try:
+                                feature = QgsFeature()
+                                feature.setGeometry(QgsGeometry.fromPoint(QgsPoint(drow[5],drow[4])))
+                                fields = pr.fields()
+                                feature.setFields(fields)
+                                f_cat_id = drow[6]
+                                if not f_cat_id:
+                                    f_cat_id = new_cats[drow[7]]
+                                feature.setAttribute('name',check_nulls(drow[1]))
+                                feature.setAttribute('descr',check_nulls(drow[2]))
+                                feature.setAttribute('sign',self.get_sign_by_alias(drow[3]))
+                                feature.setAttribute('cat_id',f_cat_id)
+                                pr.addFeatures([feature])
+                                lyr.endEditCommand()
+                            except Exception,err:
+                                lyr.destroyEditCommand()
+                                QgsMessageLog.logMessage(u'Ошибка при добавлении метки: %s' % err, level=QgsMessageLog.CRITICAL)
+                lyr.commitChanges()
+                lyr = None
+                wb.save(xls_filename)
 
-            self.set_project_settings()
-            self.iface.mapCanvas().refreshAllLayers()
-            self.update_TView()
-            self.update_layers_list()
-            msg = u"Загрузка завершена"
-            self.iface.messageBar().pushMessage(u"Загрузка в Excel", msg, level=QgsMessageBar.INFO, duration=7)
-            QgsMessageLog.logMessage(msg, level=QgsMessageLog.INFO)
+                root = QgsProject.instance().layerTreeRoot()
 
-        except Exception, err:
-            msg = u"Ошибка при загрузке в Excel: %s" % err
-            self.iface.messageBar().pushMessage("Error", msg, level=QgsMessageBar.CRITICAL, duration=7)
-            QgsMessageLog.logMessage(msg, level=QgsMessageLog.CRITICAL)
+                # Create and register new sublayers
+                for cat in new_cats.keys():
+                    chain = cat.split(chr(92))
+                    self.categories[new_cats[cat]] = cat
+                    # Create sublayers for category
+                    c_root = UniumPlugin.create_sublayers(root, chain)
+                    # Create category vector layer
+                    cat_lyr = self.create_catlyr(uri.uri(),chain[len(chain)-1],new_cats[cat])
+                    self.layers[cat_lyr.id()] = {'name': cat_lyr.name(),
+                                        'subset': cat_lyr.subsetString(),
+                                        'path': chr(92).join(chain[:len(chain)-1]),
+                                        'full_name':chr(92).join(chain)}
+                    QgsMapLayerRegistry.instance().addMapLayer(cat_lyr,False)
+                    c_root.addLayer(cat_lyr)
+                    self.iface.legendInterface().setLayerVisible(cat_lyr, False)
+
+                self.set_project_settings()
+                self.iface.mapCanvas().mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(3857, QgsCoordinateReferenceSystem.EpsgCrsId))
+                self.iface.mapCanvas().setMapUnits(0)
+                self.update_TView()
+                self.update_layers_list()
+                msg = u"Загрузка завершена"
+                self.iface.messageBar().pushMessage(u"Загрузка в Excel", msg, level=QgsMessageBar.INFO, duration=7)
+                QgsMessageLog.logMessage(msg, level=QgsMessageLog.INFO)
+
+            except Exception, err:
+                msg = u"Ошибка при загрузке в Excel: %s" % err
+                self.iface.messageBar().pushMessage("Error", msg, level=QgsMessageBar.CRITICAL, duration=7)
+                QgsMessageLog.logMessage(msg, level=QgsMessageLog.CRITICAL)
 
     #--------------------------------------------------------------------------
 
@@ -584,11 +587,14 @@ class UniumPlugin:
             self.dockwidget.layersBox.enabled = False
             attrs_names = [u"Идентификатор",u"Наименование",u"Описание",u"Условный знак"]
             attrs_values = []
-            for lyr in self.iface.legendInterface().layers():
-                all_case = (self.selected_id == '0' and self.iface.legendInterface().isLayerVisible(lyr))
+            lif = self.iface.legendInterface()
+            lyrs = lif.layers()
+            for lyr in lyrs:
+                all_case = (self.selected_id == '0' and lif.isLayerVisible(lyr))
                 if isinstance(lyr, QgsVectorLayer) and (lyr.id() == self.selected_id or all_case):
                     #attrs_names = [a.name() for a in lyr.fields()]
-                    attrs_values += [[feat[i] for i in xrange(len(attrs_names))] for feat in lyr.getFeatures()]
+                    features = lyr.getFeatures()
+                    attrs_values += [[feat[i] for i in xrange(len(attrs_names))] for feat in features]
                     if not all_case:
                         break
             self.dockwidget.tableView.setRowCount(len(attrs_values))
@@ -601,29 +607,30 @@ class UniumPlugin:
                     else:
                         pm = self.get_sign_image(attrs_values[row][col])
                         if pm:
-                            item = QTableWidgetItem()
+                            item = QTableWidgetItem(self.config["signs"][attrs_values[row][col]].get("alias",""))
                             item.setData(Qt.DecorationRole, pm.scaled(20, 20))
                         else:
                             item = QTableWidgetItem(u'%s' % attrs_values[row][col])
                     self.dockwidget.tableView.setItem(row,col,item)
             self.dockwidget.layersBox.enabled = True
 
-    def show_lyr_attrs(self,lyr):
-        attrs_names = [a.name() for a in lyr.fields()]
-        attrs_values = [[feat[i] for i in xrange(len(attrs_names))] for feat in lyr.getFeatures()]
-        self.dockwidget.tableView.setRowCount(len(attrs_values))
-        self.dockwidget.tableView.setColumnCount(len(attrs_names))
-        self.dockwidget.tableView.setHorizontalHeaderLabels(attrs_names)
-        for row in xrange(len(attrs_values)):
-            for col in xrange(len(attrs_names)):
-                item = QTableWidgetItem(u'%s' % attrs_values[row][col])
-                self.dockwidget.tableView.setItem(row,col,item)
-
     # create lyr for category
     def create_catlyr(self,uri,chain,cat_id):
         cat_lyr = QgsVectorLayer(uri, chain, 'spatialite')
         cat_lyr.setCustomProperty("cat_filter", cat_id)
         self.reset_subsets(cat_lyr)
+        try:
+            lyr_qml = os.path.join(self.plugin_dir,'lyr.qml')
+            if os.path.exists(lyr_qml):
+                cat_lyr.loadNamedStyle(lyr_qml)
+            lyr_lbl = os.path.join(self.plugin_dir,'lyr_label.conf')
+            if os.path.exists(lyr_lbl):
+                with open(lyr_lbl,'r') as lyr_lbl_f:
+                    lyr_lbl_conf = json.load(lyr_lbl_f)
+                    for lkey in lyr_lbl_conf.keys():
+                        cat_lyr.setCustomProperty(lkey,lyr_lbl_conf[lkey])
+        except Exception, err:
+            QgsMessageLog.logMessage(u'Ошибка при настройке слоя %s: %s' % (cat_lyr.id(),err), level=QgsMessageLog.WARNING)
         return cat_lyr
 
     def get_catid_by_path(self,path):
@@ -812,9 +819,12 @@ class UniumPlugin:
                                     'full_name':chr(92).join(chain)}
                 QgsMapLayerRegistry.instance().addMapLayer(cat_lyr,False)
                 c_root.addLayer(cat_lyr)
+                self.iface.legendInterface().setLayerVisible(cat_lyr, False)
             #self.get_layers()
             self.set_project_settings()
-            self.iface.mapCanvas().mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(3857, QgsCoordinateReferenceSystem.EpsgCrsId))
+            self.iface.mapCanvas().mapRenderer().setDestinationCrs(self.mercator)
+            self.iface.mapCanvas().setMapUnits(0)
+            self.iface.mapCanvas().refresh()
                 
             QgsMessageLog.logMessage(u'Слои созданы', level=QgsMessageLog.INFO)
             self.dockwidget.sasprogressBar.setValue(100)
@@ -873,8 +883,10 @@ class UniumPlugin:
     def applyFilterButton_clicked(self):
         name_filter = self.dockwidget.nameEdit.text()
         descr_filter = self.dockwidget.descrEdit.toPlainText()
-        for lyr in self.iface.legendInterface().layers():
-            if isinstance(lyr, QgsVectorLayer) and lyr.id() == self.selected_id:
+        lyrs = self.iface.legendInterface().layers()
+        for lyr in lyrs:
+            all_case = (self.selected_id == '0' and self.iface.legendInterface().isLayerVisible(lyr))
+            if isinstance(lyr, QgsVectorLayer) and (lyr.id() == self.selected_id or all_case):
                 self.set_subsets(lyr,name_filter,descr_filter)
                 extent = lyr.extent()
                 transf = QgsCoordinateTransform(lyr.crs(), self.iface.mapCanvas().mapSettings().destinationCrs())
@@ -886,13 +898,12 @@ class UniumPlugin:
     def resetFilterButton_clicked(self):
         self.dockwidget.nameEdit.setText('')
         self.dockwidget.descrEdit.setPlainText('')
-        for lyr in self.iface.legendInterface().layers():
-            if isinstance(lyr, QgsVectorLayer) and lyr.id() == self.selected_id:
+        lyrs = self.iface.legendInterface().layers()
+        for lyr in lyrs:
+            all_case = (self.selected_id == '0' and self.iface.legendInterface().isLayerVisible(lyr))
+            if isinstance(lyr, QgsVectorLayer) and (lyr.id() == self.selected_id or all_case):
                 self.reset_subsets(lyr)
                 extent = lyr.extent()
-                #center = extent.center()
-                #self.iface.mapCanvas().setExtent(extent)
-                #self.iface.mapCanvas().zoomWithCenter(center.x(),center.y(), True)
                 transf = QgsCoordinateTransform(lyr.crs(), self.iface.mapCanvas().mapSettings().destinationCrs())
                 self.iface.mapCanvas().setExtent(transf.transform(extent))
                 self.iface.mapCanvas().refresh()
