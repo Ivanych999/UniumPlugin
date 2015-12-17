@@ -359,7 +359,7 @@ class UniumPlugin:
         for sign_key in self.config.get("signs",{}).keys():
             if png_src in self.config["signs"][sign_key].get("png_src",[]):
                 return sign_key
-        return ''
+        return 'other_unknown'
 
     def get_sign_by_alias(self,alias):
         for sign_key in self.config.get("signs",{}).keys():
@@ -519,6 +519,7 @@ class UniumPlugin:
                 self.set_project_settings()
                 self.iface.mapCanvas().mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(3857, QgsCoordinateReferenceSystem.EpsgCrsId))
                 self.iface.mapCanvas().setMapUnits(0)
+                self.set_style_to_lyrs()
                 self.update_TView()
                 self.update_layers_list()
                 msg = u"Загрузка завершена"
@@ -572,6 +573,20 @@ class UniumPlugin:
                                     'subset': lyr.subsetString(),
                                     'path': path,
                                     'full_name':chr(92).join([path,lyr.name()])}
+                                    
+    def set_style_to_lyrs(self):
+        lyrs = self.iface.legendInterface().layers()
+        for lyr in lyrs:
+            if isinstance(lyr, QgsVectorLayer) and lyr.id() in self.layers.keys():
+                lyr_qml = os.path.join(self.plugin_dir,'lyr.qml')
+                if os.path.exists(lyr_qml):
+                    lyr.loadNamedStyle(lyr_qml)
+                lyr_lbl = os.path.join(self.plugin_dir,'lyr_label.conf')
+                if os.path.exists(lyr_lbl):
+                    with open(lyr_lbl,'r') as lyr_lbl_f:
+                        lyr_lbl_conf = json.load(lyr_lbl_f)
+                        for lkey in lyr_lbl_conf.keys():
+                            lyr.setCustomProperty(lkey,lyr_lbl_conf[lkey])
 
     def update_layers_list(self):
         list_items = []
@@ -619,18 +634,6 @@ class UniumPlugin:
         cat_lyr = QgsVectorLayer(uri, chain, 'spatialite')
         cat_lyr.setCustomProperty("cat_filter", cat_id)
         self.reset_subsets(cat_lyr)
-        try:
-            lyr_qml = os.path.join(self.plugin_dir,'lyr.qml')
-            if os.path.exists(lyr_qml):
-                cat_lyr.loadNamedStyle(lyr_qml)
-            lyr_lbl = os.path.join(self.plugin_dir,'lyr_label.conf')
-            if os.path.exists(lyr_lbl):
-                with open(lyr_lbl,'r') as lyr_lbl_f:
-                    lyr_lbl_conf = json.load(lyr_lbl_f)
-                    for lkey in lyr_lbl_conf.keys():
-                        cat_lyr.setCustomProperty(lkey,lyr_lbl_conf[lkey])
-        except Exception, err:
-            QgsMessageLog.logMessage(u'Ошибка при настройке слоя %s: %s' % (cat_lyr.id(),err), level=QgsMessageLog.WARNING)
         return cat_lyr
 
     def get_catid_by_path(self,path):
@@ -817,15 +820,17 @@ class UniumPlugin:
                                     'subset': cat_lyr.subsetString(),
                                     'path': chr(92).join(chain[:len(chain)-1]),
                                     'full_name':chr(92).join(chain)}
-                QgsMapLayerRegistry.instance().addMapLayer(cat_lyr,False)
+                QgsMapLayerRegistry.instance().addMapLayer(cat_lyr,False)                            
                 c_root.addLayer(cat_lyr)
                 self.iface.legendInterface().setLayerVisible(cat_lyr, False)
             #self.get_layers()
             self.set_project_settings()
-            self.iface.mapCanvas().mapRenderer().setDestinationCrs(self.mercator)
-            self.iface.mapCanvas().setMapUnits(0)
-            self.iface.mapCanvas().refresh()
-                
+            canvas = self.iface.mapCanvas()
+            renderer = canvas.mapRenderer()
+            renderer.setDestinationCrs(self.mercator)
+            canvas.setMapUnits(0)
+            canvas.refresh()
+            self.set_style_to_lyrs()
             QgsMessageLog.logMessage(u'Слои созданы', level=QgsMessageLog.INFO)
             self.dockwidget.sasprogressBar.setValue(100)
             qApp.processEvents()
