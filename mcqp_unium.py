@@ -28,11 +28,12 @@ from qgis.gui import *
 from lxml import etree
 from openpyxl import Workbook, load_workbook
 # Initialize Qt resources from file resources.py
-import resources, os, sqlite3, shutil, datetime, json, math
+import resources, os, sqlite3, shutil, datetime, json, math, sys
 
 # Import the code for the DockWidget
 from mcqp_unium_dockwidget import UniumPluginDockWidget
 import os.path
+from __builtin__ import isinstance
 
 
 class UniumPlugin:
@@ -412,6 +413,8 @@ class UniumPlugin:
                                 break
                     wb.save(xls_filename)
                     msg = u"Выгрузка завершена"
+                    if sys.platform.startswith('win'):
+                        os.system("start "+xls_filename)
                 self.iface.messageBar().pushMessage(u"Выгрузка в Excel", msg, level=QgsMessageBar.INFO, duration=7)
                 QgsMessageLog.logMessage(msg, level=QgsMessageLog.INFO)
             except Exception, err:
@@ -441,62 +444,56 @@ class UniumPlugin:
                 max_catid = self.get_max_catid()
                 c_catid = max_catid+1
 
-                for row in ws.rows:
-                    if row[0].value == u"Идентификатор":
-                        continue
-                    else:
-                        if not row[6].value:
-                            if row[7].value in self.categories.values():
-                                new_cats[row[7].value] = self.get_catid_by_path(row[7].value)
-                            else:
-                                new_cats[row[7].value] = c_catid
-                                c_catid+=1
+                for row in ws.rows[1:]:
+                    if not row[6].value:
+                        if row[7].value in self.categories.values():
+                            new_cats[row[7].value] = self.get_catid_by_path(row[7].value)
+                        else:
+                            new_cats[row[7].value] = c_catid
+                            c_catid+=1
 
                 # Iterate rows
                 check_nulls = lambda val: val if val else ''
-                for row in ws.rows:
-                    if row[0].value == u"Идентификатор":
-                        continue
-                    else:
-                        drow = {}
-                        for i,cell in enumerate(row):
-                            drow[i] = cell.value
-                        # If id field not empty - try update it
-                        if drow[0]:
-                            lyr.beginEditCommand("Feature update")
-                            try:
-                                f_cat_id = drow[6]
-                                if not drow[6]:
-                                    f_cat_id = new_cats[drow[7]]
-                                attrs = { 1 : check_nulls(drow[1]), 2 : check_nulls(drow[2]), 3: self.get_sign_by_alias(drow[3]), 4: f_cat_id}
-                                geom = QgsGeometry.fromPoint(QgsPoint(drow[5],drow[4]))
-                                pr.changeAttributeValues({ drow[0] : attrs })
-                                pr.changeGeometryValues({ drow[0] : geom })
-                                lyr.endEditCommand()
-                            except Exception,err:
-                                lyr.destroyEditCommand()
-                                QgsMessageLog.logMessage(u'Ошибка при изменении метки id=%s: %s' % (drow[0],err), level=QgsMessageLog.CRITICAL)
+                for row in ws.rows[1:]:
+                    drow = {}
+                    for i,cell in enumerate(row):
+                        drow[i] = cell.value
+                    # If id field not empty - try update it
+                    if drow[0]:
+                        lyr.beginEditCommand("Feature update")
+                        try:
+                            f_cat_id = drow[6]
+                            if not drow[6]:
+                                f_cat_id = new_cats[drow[7]]
+                            attrs = { 1 : check_nulls(drow[1]), 2 : check_nulls(drow[2]), 3: self.get_sign_by_alias(drow[3]), 4: f_cat_id}
+                            geom = QgsGeometry.fromPoint(QgsPoint(drow[5],drow[4]))
+                            pr.changeAttributeValues({ drow[0] : attrs })
+                            pr.changeGeometryValues({ drow[0] : geom })
+                            lyr.endEditCommand()
+                        except Exception,err:
+                            lyr.destroyEditCommand()
+                            QgsMessageLog.logMessage(u'Ошибка при изменении метки id=%s: %s' % (drow[0],err), level=QgsMessageLog.CRITICAL)
 
-                        # If id field is empty - try insert new mark
-                        else:
-                            lyr.beginEditCommand("Feature insert")
-                            try:
-                                feature = QgsFeature()
-                                feature.setGeometry(QgsGeometry.fromPoint(QgsPoint(drow[5],drow[4])))
-                                fields = pr.fields()
-                                feature.setFields(fields)
-                                f_cat_id = drow[6]
-                                if not f_cat_id:
-                                    f_cat_id = new_cats[drow[7]]
-                                feature.setAttribute('name',check_nulls(drow[1]))
-                                feature.setAttribute('descr',check_nulls(drow[2]))
-                                feature.setAttribute('sign',self.get_sign_by_alias(drow[3]))
-                                feature.setAttribute('cat_id',f_cat_id)
-                                pr.addFeatures([feature])
-                                lyr.endEditCommand()
-                            except Exception,err:
-                                lyr.destroyEditCommand()
-                                QgsMessageLog.logMessage(u'Ошибка при добавлении метки: %s' % err, level=QgsMessageLog.CRITICAL)
+                    # If id field is empty - try insert new mark
+                    else:
+                        lyr.beginEditCommand("Feature insert")
+                        try:
+                            feature = QgsFeature()
+                            feature.setGeometry(QgsGeometry.fromPoint(QgsPoint(drow[5],drow[4])))
+                            fields = pr.fields()
+                            feature.setFields(fields)
+                            f_cat_id = drow[6]
+                            if not f_cat_id:
+                                f_cat_id = new_cats[drow[7]]
+                            feature.setAttribute('name',check_nulls(drow[1]))
+                            feature.setAttribute('descr',check_nulls(drow[2]))
+                            feature.setAttribute('sign',self.get_sign_by_alias(drow[3]))
+                            feature.setAttribute('cat_id',f_cat_id)
+                            pr.addFeatures([feature])
+                            lyr.endEditCommand()
+                        except Exception,err:
+                            lyr.destroyEditCommand()
+                            QgsMessageLog.logMessage(u'Ошибка при добавлении метки: %s' % err, level=QgsMessageLog.CRITICAL)
                 lyr.commitChanges()
                 lyr = None
                 wb.save(xls_filename)
@@ -576,11 +573,36 @@ class UniumPlugin:
                                     'subset': lyr.subsetString(),
                                     'path': path,
                                     'full_name':chr(92).join([path,lyr.name()])}
+    
+    @staticmethod
+    def __find_same_layers(root,lyr_ids):
+        group_names = [l.name for l in root.children() if isinstance(l, QgsLayerTreeGroup)]
+        for tl in root.children():
+            if isinstance(tl, QgsLayerTreeGroup):
+                lyr_ids = UniumPlugin.__find_same_layers(tl, lyr_ids)
+            elif isinstance(tl, QgsLayerTreeLayer):
+                if tl.layerName() in group_names:
+                    lyr_ids.append(tl.layerId())
+        return lyr_ids
+                
+    def remove_vlayers_as_group(self):
+        root = QgsProject.instance().layerTreeRoot()
+        ids = []
+        ids = UniumPlugin.__find_same_layers(root, ids)
+        if len(ids) > 0:
+            lyrs = self.iface.legendInterface().layers()
+            for lyr in lyrs:
+                if isinstance(lyr, QgsVectorLayer) and lyr.id() in ids:
+                    l_feats = lyr.getFeatures()
+                    if len(l_feats) <= 0:
+                        QgsMapLayerRegistry.instance().removeMapLayer(lyr)
+                        self.layers.pop(lyr.id())
                                     
     def set_style_to_lyrs(self):
         lyrs = self.iface.legendInterface().layers()
         for lyr in lyrs:
             if isinstance(lyr, QgsVectorLayer) and lyr.id() in self.layers.keys():
+                lyr.setDisplayField('name')
                 lyr_qml = os.path.join(self.plugin_dir,'lyr.qml')
                 if os.path.exists(lyr_qml):
                     lyr.loadNamedStyle(lyr_qml)
@@ -809,6 +831,11 @@ class UniumPlugin:
             QgsMapLayerRegistry.instance().removeAllMapLayers()
 
             self.categories = {}
+            
+            prgrs_interval = int(math.ceil(len(nodes)/25.0))
+
+            f_idx = 0
+            position = 75
 
             for node in nodes:
                 chain = node.get('name').split(chr(92))
@@ -826,7 +853,14 @@ class UniumPlugin:
                 QgsMapLayerRegistry.instance().addMapLayer(cat_lyr,False)                            
                 c_root.addLayer(cat_lyr)
                 self.iface.legendInterface().setLayerVisible(cat_lyr, False)
+                f_idx+=1
+                if f_idx%prgrs_interval == 0:
+                    position+=1
+                    self.dockwidget.sasprogressBar.setValue(position)
+                    qApp.processEvents()
+                
             #self.get_layers()
+            self.remove_vlayers_as_group()
             self.set_project_settings()
             canvas = self.iface.mapCanvas()
             renderer = canvas.mapRenderer()
