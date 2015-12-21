@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 /***************************************************************************
  UniumPlugin
@@ -28,7 +28,7 @@ from qgis.gui import *
 from lxml import etree
 from openpyxl import Workbook, load_workbook
 # Initialize Qt resources from file resources.py
-import resources, os, sqlite3, shutil, datetime, json, math, sys
+import resources, os, sqlite3, shutil, datetime, json, math, sys, tempfile
 
 # Import the code for the DockWidget
 from mcqp_unium_dockwidget import UniumPluginDockWidget
@@ -612,6 +612,32 @@ class UniumPlugin:
                         lyr_lbl_conf = json.load(lyr_lbl_f)
                         for lkey in lyr_lbl_conf.keys():
                             lyr.setCustomProperty(lkey,lyr_lbl_conf[lkey])
+                            
+    def set_styles(self):
+        lyrs = self.iface.legendInterface().layers()
+        for lyr in lyrs:
+            if isinstance(lyr, QgsVectorLayer) and lyr.id() in self.layers.keys():
+                qml = os.path.join(self.plugin_dir,'lyr.qml')
+                if os.path.exists(qml):
+                    cat_id = self.layers.get(lyr.id(),{}).get('cat_id',-1)
+                    qmlf = open(qml,'r')
+                    tmp_dir = tempfile.gettempdir()        
+                    qxml = etree.XML(qmlf.read())
+                    qmlf.close()
+                    
+                    cat_elem = etree.fromstring('<widgetv2config fieldEditable="0" labelOnTop="0"><value key="{0}" value="{0}"/></widgetv2config>'.format(cat_id))
+                    for n in qxml.xpath('/qgis/edittypes/edittype[@name="cat_id"]'):
+                        n.clear()
+                        n.set("widgetv2type", 'ValueMap')
+                        n.set("name", 'cat_id')
+                        n.append(cat_elem)
+                        
+                    qmlt_name = os.path.join(tmp_dir,'{0}_cat.qml'.format(cat_id))
+                    qmlt = open(qmlt_name, 'w')
+                    qmlt.write(etree.tostring(qxml,encoding='utf8',pretty_print=True))
+                    qmlt.close()
+                    lyr.loadNamedStyle(qmlt_name)
+        
 
     def update_layers_list(self):
         list_items = []
@@ -847,6 +873,7 @@ class UniumPlugin:
                 # Create category vector layer
                 cat_lyr = self.create_catlyr(uri.uri(),chain[len(chain)-1],int(node.get('id')))
                 self.layers[cat_lyr.id()] = {'name': cat_lyr.name(),
+                                             'cat_id': node.get('id'),
                                     'subset': cat_lyr.subsetString(),
                                     'path': chr(92).join(chain[:len(chain)-1]),
                                     'full_name':chr(92).join(chain)}
@@ -867,7 +894,8 @@ class UniumPlugin:
             renderer.setDestinationCrs(self.mercator)
             canvas.setMapUnits(0)
             canvas.refresh()
-            self.set_style_to_lyrs()
+            #self.set_style_to_lyrs()
+            self.set_styles()
             renderer.setDestinationCrs(self.mercator)
             canvas.refresh()
             QgsMessageLog.logMessage(u'Слои созданы', level=QgsMessageLog.INFO)
