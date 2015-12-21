@@ -548,7 +548,7 @@
     <property key="labeling/repeatDistanceUnit" value="1"/>
     <property key="labeling/reverseDirectionSymbol" value="false"/>
     <property key="labeling/rightDirectionSymbol" value=">"/>
-    <property key="labeling/scaleMax" value="250000"/>
+    <property key="labeling/scaleMax" value="100000"/>
     <property key="labeling/scaleMin" value="1"/>
     <property key="labeling/scaleVisibility" value="true"/>
     <property key="labeling/shadowBlendMode" value="6"/>
@@ -616,12 +616,12 @@
     <property key="labeling/xOffset" value="0"/>
     <property key="labeling/yOffset" value="0"/>
     <property key="variableNames" value="_fields_"/>
-    <property key="variableValues" value=""/>
+    <property key="variableValues" value=""/>  
   </customproperties>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
   <layerTransparency>0</layerTransparency>
-  <displayfield>descr</displayfield>
+  <displayfield>name</displayfield>
   <label>0</label>
   <labelattributes>
     <label fieldname="" text="Подпись"/>
@@ -652,7 +652,7 @@
   <DiagramLayerSettings yPosColumn="-1" linePlacementFlags="10" placement="0" dist="0" xPosColumn="-1" priority="0" obstacle="0" showAll="1"/>
   <editform>.</editform>
   <editforminit/>
-  <featformsuppress>0</featformsuppress>
+  <featformsuppress>2</featformsuppress>
   <annotationform>.</annotationform>
   <editorlayout>tablayout</editorlayout>
   <excludeAttributesWMS/>
