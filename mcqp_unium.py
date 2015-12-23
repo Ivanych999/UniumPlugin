@@ -414,7 +414,7 @@ class UniumPlugin:
                     wb.save(xls_filename)
                     msg = u"Выгрузка завершена"
                     if sys.platform.startswith('win'):
-                        os.system("start "+xls_filename)
+                        os.system("start "+xls_filename.encode('cp1251'))
                 self.iface.messageBar().pushMessage(u"Выгрузка в Excel", msg, level=QgsMessageBar.INFO, duration=7)
                 QgsMessageLog.logMessage(msg, level=QgsMessageLog.INFO)
             except Exception, err:
@@ -519,7 +519,7 @@ class UniumPlugin:
                 self.set_project_settings()
                 self.iface.mapCanvas().mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(3857, QgsCoordinateReferenceSystem.EpsgCrsId))
                 self.iface.mapCanvas().setMapUnits(0)
-                self.set_style_to_lyrs()
+                self.set_styles()
                 self.update_TView()
                 self.update_layers_list()
                 msg = u"Загрузка завершена"
