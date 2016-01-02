@@ -20,15 +20,15 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt, QVariant
+from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon, QFileDialog, QTableWidgetItem, qApp, QImage, QPixmap
-from PyQt4.QtCore import pyqtSlot,SIGNAL,SLOT
+from PyQt4.QtCore import pyqtSlot
 from qgis.core import *
 from qgis.gui import *
 from lxml import etree
 from openpyxl import Workbook, load_workbook
 # Initialize Qt resources from file resources.py
-import resources, os, sqlite3, shutil, datetime, json, math, sys, tempfile
+import os, sqlite3, shutil, datetime, json, math, sys, tempfile
 
 # Import the code for the DockWidget
 from mcqp_unium_dockwidget import UniumPluginDockWidget
@@ -87,6 +87,7 @@ class UniumPlugin:
         self.layers = {}
         self.src_info = {}
         self.selected_id = u''
+        self.selected_files = []
         self.mercator = QgsCoordinateReferenceSystem()
         mercatorWKT = u'PROJCS["WGS 84 / Pseudo-Mercator",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]],PROJECTION["Mercator_1SP"],PARAMETER["central_meridian",0],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["X",EAST],AXIS["Y",NORTH],EXTENSION["PROJ4","+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"],AUTHORITY["EPSG","3857"]]'
         mercatorProj4 = u'+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs'
@@ -284,6 +285,8 @@ class UniumPlugin:
                 self.dockwidget.xlsoutButton.clicked.connect(self.export_to_xls)
                 self.dockwidget.brwsxlsinButton.clicked.connect(self.select_in_excel_file)
                 self.dockwidget.xlsinButton.clicked.connect(self.import_from_xls)
+                self.dockwidget.showFiles.clicked.connect(self.show_files)
+                self.dockwidget.addFiles.clicked.connect(self.add_files)
                 #self.dockwidget.layersBox.connect(self.dockwidget.layersBox,SIGNAL("currentIndexChanged(int)"),self.dockwidget,SLOT("self.selected_layer_changed(int)"))
                 
             self.dockwidget.layersBox.currentIndex = 1
@@ -381,6 +384,39 @@ class UniumPlugin:
         else:
             return False
 
+    #--------------------------------------------------------------------------
+
+    def get_files(self,oid_list=[]):
+        result = []
+        files_path = os.path.join(self.config.get("files_folder",""),os.path.basename(self.src_info.get("database","")),self.src_info.get("datatable",""))
+        oid_list.sort()
+        if os.path.exists(files_path):
+            for oid in oid_list:
+                oid_path = os.path.join(files_path,oid)
+                if os.path.exists(oid_path):
+                    result += [{oid:os.listdir(oid_path)}]
+        return result
+
+    def load_file(self,oid,files):
+        oid_path = os.path.join(self.config.get("files_folder",""),os.path.basename(self.src_info.get("database","")),self.src_info.get("datatable",""),oid)
+        if not os.path.exists(oid_path):
+            os.makedirs(oid_path)
+        for filename in files:
+            shutil.copyfile(filename, os.path.join(oid_path,os.path.basename(filename)))
+
+    def print_file(self,oid,filename):
+        print_file = os.path.join(self.config.get("files_folder",""),os.path.basename(self.src_info.get("database","")),self.src_info.get("datatable",""),oid,filename)
+        if os.path.exists(print_file):
+            os.startfile(print_file,'print')
+
+    def delete_file(self,oid,filename):
+        del_file = os.path.join(self.config.get("files_folder",""),os.path.basename(self.src_info.get("database","")),self.src_info.get("datatable",""),oid,filename)
+        if os.path.exists(del_file):
+            os.remove(del_file)
+
+    def get_selected_ids(self):
+        rows = self.dockwidget.tableView.selectedItems()
+        return [rows[id].text() for id in xrange(0,len(rows),4)]
 
     #--------------------------------------------------------------------------
 
@@ -414,7 +450,8 @@ class UniumPlugin:
                     wb.save(xls_filename)
                     msg = u"Выгрузка завершена"
                     if sys.platform.startswith('win'):
-                        os.system("start "+xls_filename.encode('cp1251'))
+                        #os.system("start "+xls_filename.encode('cp1251'))
+                        os.startfile(xls_filename, 'open')
                 self.iface.messageBar().pushMessage(u"Выгрузка в Excel", msg, level=QgsMessageBar.INFO, duration=7)
                 QgsMessageLog.logMessage(msg, level=QgsMessageLog.INFO)
             except Exception, err:
@@ -988,3 +1025,22 @@ class UniumPlugin:
     def select_in_excel_file(self):
         xls_file = QFileDialog.getOpenFileName(self.dockwidget, "Select Excel file ", '',"Excel files (*.xlsx)")
         self.dockwidget.xlsinEdit.setText(xls_file)
+
+    def show_files(self):
+        ids = self.get_selected_ids()
+        self.selected_files = self.get_files(ids)
+        if len(self.selected_files) > 0:
+            self.dockwidget.fileList.clear()
+        QgsMessageLog.logMessage('%s' % self.selected_files, level=QgsMessageLog.INFO)
+        for fl in self.selected_files:
+            QgsMessageLog.logMessage('%s' % fl, level=QgsMessageLog.INFO)
+            for flk in fl.keys():
+                for flv in fl.get(flk,[]):
+                    self.dockwidget.fileList.addItem('%s:%s' % (flk,flv))
+
+    def add_files(self):
+        oids = self.get_selected_ids()
+        if len(oids) > 0:
+            fls = QFileDialog.getOpenFileNames(self.dockwidget, u"Выберете файлы для загрузки ", os.getenv("HOME"),u"Все файлы (*.*)")
+            self.load_file(oids[0],fls)
+            self.show_files()
